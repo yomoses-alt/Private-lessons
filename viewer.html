@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Private Lessons - Hemda Moses v2.2</title>
+<title>Private Lessons - Hemda Moses v2.3</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -57,6 +57,11 @@ small,.badge{color:var(--muted);font-weight:600}
   .desktop-schedule{display:none}.mobile-list{display:block}
   h1{font-size:21px}
 }
+
+.schedule-body{display:grid;grid-template-columns:58px repeat(6,minmax(130px,1fr));min-width:850px}
+.time-scale{background:#fbfaff;border-right:1px solid var(--line)}
+.time-slot{height:46px;border-bottom:1px solid var(--line);font-size:12px;text-align:center;color:var(--muted);font-weight:700;padding-top:4px}
+
 </style>
 </head>
 <body>
@@ -64,7 +69,7 @@ small,.badge{color:var(--muted);font-weight:600}
   <div class="header-row">
     <div>
       <h1>Private Lessons - Hemda Moses</h1>
-      <div class="sub">Version 2.2 · Google Sheets Sync · Timezone Fix</div>
+      <div class="sub">Version 2.3 · Google Sheets Sync · Calendar Alignment Fix</div>
     </div>
     <div class="tabs">
       <span class="status"><span id="statusDot" class="dot"></span><span id="syncStatus">Loading...</span></span>
@@ -157,6 +162,19 @@ function toMin(t){const normalized=normalizeTimeValue(t);const [h,m]=String(norm
 function pad(n){return String(n).padStart(2,'0')}
 function fromMin(m){return `${pad(Math.floor(m/60))}:${pad(m%60)}`}
 function dayName(id){return days.find(d=>d.id===id)?.name||id}
+function normalizeDay(day){
+  const s=String(day||'').trim().toLowerCase();
+  const map={
+    sun:'sun',sunday:'sun','יום ראשון':'sun','ראשון':'sun',
+    mon:'mon',monday:'mon','יום שני':'mon','שני':'mon',
+    tue:'tue',tuesday:'tue','יום שלישי':'tue','שלישי':'tue',
+    wed:'wed',wednesday:'wed','יום רביעי':'wed','רביעי':'wed',
+    thu:'thu',thursday:'thu','יום חמישי':'thu','חמישי':'thu',
+    fri:'fri',friday:'fri','יום שישי':'fri','שישי':'fri'
+  };
+  return map[s] || s;
+}
+
 function escapeHtml(str){return String(str??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[s]))}
 function setStatus(text,type='warn'){document.getElementById('syncStatus').textContent=text;const d=document.getElementById('statusDot');d.className='dot '+(type==='ok'?'ok':type==='bad'?'bad':'')}
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');if(id==='schedule')renderCalendar()}
@@ -167,8 +185,8 @@ function sortedStudents(){return [...students].map(normalizeStudent).sort((a,b)=
 function flattenForSheets(){
   const sheetStudents=students.map(s=>({ID:s.id,FirstName:s.firstName||'',LastName:s.lastName||'',Duration:s.duration||45}));
   const lessons=[];
-  students.forEach(s=>(s.lessons||[]).forEach(l=>lessons.push({StudentID:s.id,Day:l.day,StartTime:normalizeTimeValue(l.start)})));
-  const blocked=blockedTimes.map(b=>({ID:b.id||uid(),Day:b.day,Start:normalizeTimeValue(b.start),End:normalizeTimeValue(b.end)}));
+  students.forEach(s=>(s.lessons||[]).forEach(l=>lessons.push({StudentID:s.id,Day:normalizeDay(l.day),StartTime:normalizeTimeValue(l.start)})));
+  const blocked=blockedTimes.map(b=>({ID:b.id||uid(),Day:normalizeDay(b.day),Start:normalizeTimeValue(b.start),End:normalizeTimeValue(b.end)}));
   return {students:sheetStudents,lessons,blockedTimes:blocked};
 }
 function buildFromSheets(data){
@@ -179,10 +197,10 @@ function buildFromSheets(data){
   });
   (data.lessons||[]).forEach(r=>{
     const id=r.StudentID;
-    if(map[id]) map[id].lessons.push({day:r.Day,start:normalizeTimeValue(r.StartTime)});
+    if(map[id]) map[id].lessons.push({day:normalizeDay(r.Day),start:normalizeTimeValue(r.StartTime)});
   });
   students=Object.values(map);
-  blockedTimes=(data.blockedTimes||[]).map(r=>({id:r.ID||uid(),day:r.Day,start:normalizeTimeValue(r.Start),end:normalizeTimeValue(r.End)}));
+  blockedTimes=(data.blockedTimes||[]).map(r=>({id:r.ID||uid(),day:normalizeDay(r.Day),start:normalizeTimeValue(r.Start),end:normalizeTimeValue(r.End)}));
 }
 
 async function loadFromSheets(){
@@ -265,16 +283,48 @@ function dayEvents(day){
   return ev.sort((a,b)=>a.start-b.start||a.name.localeCompare(b.name,['he','en']));
 }
 function renderCalendar(){
-  const cal=document.getElementById('calendar');cal.innerHTML='<div class="head"></div>'+days.map(d=>`<div class="head">${d.name}</div>`).join('');
-  const maxRows=10;
-  cal.innerHTML += Array.from({length:maxRows},(_,i)=>`<div class="time">${fromMin(480+i*60)}</div>${days.map(()=>'<div class="cell"></div>').join('')}`).join('');
+  const cal=document.getElementById('calendar');
+  cal.innerHTML='<div class="head"></div>'+days.map(d=>`<div class="head">${d.name}</div>`).join('');
+  const body=document.createElement('div');
+  body.className='schedule-body';
+  body.style.gridColumn='1 / -1';
+
+  const timeScale=document.createElement('div');
+  timeScale.className='time-scale';
+  for(let m=480;m<1080;m+=60){
+    const t=document.createElement('div');
+    t.className='time-slot';
+    t.textContent=fromMin(m);
+    timeScale.appendChild(t);
+  }
+  body.appendChild(timeScale);
+
   days.forEach(day=>{
-    const col=document.createElement('div');col.className='daycol';
-    const startDay=toMin(day.start), endDay=toMin(day.end), total=endDay-startDay;
-    for(let m=startDay;m<endDay;m+=60){const line=document.createElement('div');line.className='hour-line';col.appendChild(line)}
-    dayEvents(day).forEach(ev=>{const div=document.createElement('div');div.className='event '+ev.type;div.style.top=((ev.start-startDay)/60*46)+'px';div.style.height=Math.max(22,((ev.end-ev.start)/60*46)-3)+'px';div.innerHTML=`<b>${escapeHtml(ev.name)} · ${fromMin(ev.start)}–${fromMin(ev.end)}</b>`;col.appendChild(div)});
-    cal.appendChild(col);
+    const col=document.createElement('div');
+    col.className='daycol';
+    const startDay=toMin(day.start), endDay=toMin(day.end);
+    const visibleEnd=toMin('18:00');
+    for(let m=480;m<1080;m+=60){
+      const line=document.createElement('div');
+      line.className='hour-line';
+      if(m>=endDay) line.style.background='#f4f1fb';
+      col.appendChild(line);
+    }
+    dayEvents(day).forEach(ev=>{
+      const clippedStart=Math.max(ev.start,startDay);
+      const clippedEnd=Math.min(ev.end,visibleEnd);
+      if(clippedEnd<=clippedStart) return;
+      const div=document.createElement('div');
+      div.className='event '+ev.type;
+      div.style.top=((clippedStart-480)/60*46)+'px';
+      div.style.height=Math.max(22,((clippedEnd-clippedStart)/60*46)-3)+'px';
+      div.innerHTML=`<b>${escapeHtml(ev.name)} · ${fromMin(ev.start)}–${fromMin(ev.end)}</b>`;
+      col.appendChild(div);
+    });
+    body.appendChild(col);
   });
+
+  cal.appendChild(body);
   renderMobileSchedule();
 }
 function renderMobileSchedule(){

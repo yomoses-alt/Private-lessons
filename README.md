@@ -1,3 +1,3 @@
-# Private Lessons - Google Sheets Sync v2.2
+# Private Lessons - Google Sheets Sync v2.3
 
-Timezone fix. Also update Apps Script code.
+Calendar alignment and day normalization fix.
