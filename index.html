@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Private Lessons - Hemda Moses v3.3</title>
+<title>Private Lessons - Hemda Moses v3.4</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -130,6 +130,24 @@ small,.badge{color:var(--muted);font-weight:600}
   margin:0 0 8px;
 }
 
+
+@media(max-width:900px){
+  .desktop-schedule{display:none !important;}
+  .mobile-list{display:none !important;}
+  .mobile-week-simple{
+    display:block !important;
+    visibility:visible !important;
+    opacity:1 !important;
+  }
+  .mobile-week-table-wrap{
+    display:block !important;
+    overflow-x:auto !important;
+  }
+  #mobileWeekSimple{
+    display:table !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -137,7 +155,7 @@ small,.badge{color:var(--muted);font-weight:600}
   <div class="header-row">
     <div>
       <h1>Private Lessons - Hemda Moses</h1>
-      <div class="sub">Version 3.3 · Simple Mobile Weekly View</div>
+      <div class="sub">Version 3.4 · Mobile Display Fix</div>
     </div>
     <div class="tabs">
       <span class="status"><span id="statusDot" class="dot"></span><span id="syncStatus">Loading...</span></span>

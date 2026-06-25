@@ -1,6 +1,6 @@
-# Private Lessons - Google Sheets Sync v3.3
+# Private Lessons - Google Sheets Sync v3.4
 
-Simple mobile weekly table:
-- phone shows all week in a horizontal-scroll table
-- no complex positioning
+Mobile display fix:
+- forces the weekly mobile table to show on phone
+- hides old mobile list
 - desktop calendar unchanged
