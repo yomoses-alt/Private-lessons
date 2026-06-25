@@ -1,10 +1,3 @@
-# Private Lessons - Hemda Moses
+# Private Lessons - Google Sheets Sync
 
-Static HTML app for GitHub Pages.
-
-Files:
-- index.html — full desktop version
-- viewer.html — mobile read-only viewer
-
-GitHub Pages:
-Settings → Pages → Deploy from a branch → main → /root
+Upload these files to GitHub Pages.

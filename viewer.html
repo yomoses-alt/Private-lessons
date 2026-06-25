@@ -1,61 +1,270 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Private Lessons - Mobile Viewer</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Private Lessons - Hemda Moses v2.0</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f4efff;--card:#ffffff;--purple:#6d5dfc;--purple2:#7b4dff;--text:#3d2f6b;--muted:#7b7199;--line:#ded6ff}
+:root{
+  --bg:#f4efff;--card:#fff;--purple:#6d5dfc;--purple2:#7b4dff;--text:#34285d;--muted:#7b7199;--line:#ded6ff;
+  --danger:#ef5b7d;--gray:#e9e5f3;
+}
 *{box-sizing:border-box}
-body{margin:0;font-family:"Quicksand",system-ui,-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text)}
-header{position:sticky;top:0;z-index:10;background:linear-gradient(135deg,var(--purple),var(--purple2));color:white;padding:14px 14px 12px;box-shadow:0 6px 18px rgba(77,61,180,.22)}
-h1{font-size:20px;margin:0;font-weight:700}.subtitle{font-size:12px;opacity:.9;margin-top:3px}
-.toolbar{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap}
-button,label.file-btn{border:0;background:white;color:var(--purple);border-radius:12px;padding:9px 12px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer}
-input[type=file]{display:none}main{padding:12px;max-width:720px;margin:auto}
-.day{background:var(--card);border:1px solid var(--line);border-radius:18px;margin-bottom:12px;overflow:hidden;box-shadow:0 8px 20px rgba(75,54,140,.08)}
-.day-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:#fbf9ff;border-bottom:1px solid var(--line)}
-.day-title{font-weight:700;font-size:18px}.count{font-size:12px;color:var(--muted);font-weight:600}
-.event{margin:10px 12px;padding:12px;border-radius:14px;border:1px solid #d7cdfc;background:linear-gradient(135deg,#fff,#f7f4ff)}
-.event.lesson{border-left:5px solid var(--purple)}.event.blocked{background:#eeeaf7;border-color:#d6d0e6;border-left:5px solid #9d96b8}
-.row{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.name{font-size:16px;font-weight:700}.time{font-size:14px;font-weight:700;color:var(--purple)}
-.meta{font-size:12px;color:var(--muted);margin-top:4px}.empty{padding:16px;text-align:center;color:var(--muted);font-weight:600}
-.footer-note{text-align:center;color:var(--muted);font-size:12px;padding:12px 4px 20px}
+body{margin:0;font-family:"Quicksand",system-ui,sans-serif;background:var(--bg);color:var(--text)}
+header{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;padding:16px 22px;box-shadow:0 8px 22px rgba(77,61,180,.22)}
+.header-row{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+h1{margin:0;font-size:26px;font-weight:700}
+.sub{font-size:13px;opacity:.92;margin-top:3px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+button{font-family:inherit;border:0;border-radius:12px;padding:9px 14px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#5B6CFF,#7B4DFF);color:#fff;box-shadow:0 8px 18px rgba(91,108,255,.18)}
+button:hover{filter:brightness(.96);transform:translateY(-1px)}
+button.secondary{background:#fff;color:var(--purple);border:1px solid var(--line);box-shadow:none}
+button.danger{background:var(--danger)}
+main{padding:18px;max-width:1420px;margin:auto}
+.screen{display:none}.screen.active{display:block}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 8px 22px rgba(75,54,140,.08)}
+h2{margin:0 0 12px;font-size:22px}
+label{font-weight:700;font-size:13px;color:#5b4c89}
+input,select{width:100%;font-family:inherit;padding:10px 11px;border:1px solid var(--line);border-radius:12px;background:#fbfaff;color:var(--text);font-weight:600}
+.row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
+.lesson-line,.blocked-line,.item{display:flex;gap:10px;align-items:center;justify-content:space-between;background:#fbfaff;border:1px solid var(--line);border-radius:14px;padding:10px;margin:8px 0}
+.lesson-line>*,.blocked-line>*{flex:1}
+.item b{font-size:16px}
+small,.badge{color:var(--muted);font-weight:600}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.status{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:7px 10px;font-size:13px;font-weight:700}
+.dot{width:9px;height:9px;border-radius:50%;background:#ffc857;display:inline-block}.dot.ok{background:#66e2a3}.dot.bad{background:#ff7b7b}
+.schedule-wrap{overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 22px rgba(75,54,140,.08)}
+.schedule{display:grid;grid-template-columns:58px repeat(6,minmax(130px,1fr));min-width:850px;position:relative}
+.cell{border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-height:46px;position:relative;background:#fff}
+.head{position:sticky;top:0;z-index:5;background:#fbfaff;font-weight:700;text-align:center;padding:10px;border-bottom:2px solid var(--line)}
+.time{font-size:12px;text-align:center;color:var(--muted);padding-top:4px;background:#fbfaff;font-weight:700}
+.daycol{position:relative;min-height:506px;border-right:1px solid var(--line);background:linear-gradient(#fff,#fff)}
+.hour-line{height:46px;border-bottom:1px solid var(--line)}
+.event{position:absolute;left:5px;right:5px;border-radius:10px;padding:4px 6px;font-size:12.5px;overflow:hidden;border:1px solid #d7cdfc;background:linear-gradient(135deg,#fff,#f7f4ff);z-index:2}
+.event.lesson{border-left:5px solid var(--purple)}
+.event.blocked{background:#eeeaf7;border-color:#d6d0e6;border-left:5px solid #9d96b8}
+.event b{font-size:13px}
+.event .meta{font-size:12px;color:var(--muted);font-weight:700}
+.mobile-list{display:none}
+.empty{padding:12px;color:var(--muted);font-weight:700;text-align:center}
+@media(max-width:900px){
+  main{padding:12px}.grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}
+  .desktop-schedule{display:none}.mobile-list{display:block}
+  h1{font-size:21px}
+}
 </style>
 </head>
 <body>
 <header>
-  <h1>Private Lessons - Hemda Moses</h1>
-  <div class="subtitle">Mobile Viewer · read-only weekly schedule</div>
-  <div class="toolbar">
-    <label class="file-btn" for="importFile">Import Backup</label>
-    <input id="importFile" type="file" accept="application/json,.json">
-    <button onclick="clearViewer()">Clear</button>
+  <div class="header-row">
+    <div>
+      <h1>Private Lessons - Hemda Moses</h1>
+      <div class="sub">Version 2.0 · Google Sheets Sync</div>
+    </div>
+    <div class="tabs">
+      <span class="status"><span id="statusDot" class="dot"></span><span id="syncStatus">Loading...</span></span>
+      <button class="secondary" onclick="showScreen('settings')">Settings</button>
+      <button class="secondary" onclick="showScreen('schedule')">Weekly Schedule</button>
+      <button class="secondary" onclick="loadFromSheets()">Refresh</button>
+    </div>
   </div>
 </header>
+
 <main>
-  <div id="schedule"></div>
-  <div class="footer-note">Viewer only: update by importing a backup from the full desktop version.</div>
+<section id="settings" class="screen active">
+  <div class="grid">
+    <div class="card">
+      <h2 id="studentFormTitle">Add Student</h2>
+      <input type="hidden" id="editingStudentId">
+      <div class="row">
+        <div><label>First Name</label><input id="studentFirstName" placeholder="Maya"></div>
+        <div><label>Last Name</label><input id="studentLastName" placeholder="Cohen"></div>
+        <div><label>Lesson Duration</label><input id="lessonDuration" type="number" min="15" step="15" value="45"></div>
+      </div>
+      <h3>Recurring Lessons</h3>
+      <div id="lessonTimes"></div>
+      <button onclick="addLessonTime()">Add Lesson Time</button>
+      <button onclick="saveStudent()">Save Student</button>
+      <button class="secondary" onclick="resetStudentForm()">Cancel</button>
+    </div>
+
+    <div class="card">
+      <h2>Students</h2>
+      <div id="studentList"></div>
+    </div>
+
+    <div class="card">
+      <h2>Add Blocked Time</h2>
+      <div class="row">
+        <div><label>Day</label><select id="blockedDay"></select></div>
+        <div><label>Start</label><input id="blockedStart" type="time" value="12:00"></div>
+        <div><label>End</label><input id="blockedEnd" type="time" value="13:00"></div>
+      </div>
+      <button onclick="saveBlockedTime()">Add Blocked Time</button>
+    </div>
+
+    <div class="card">
+      <h2>Blocked Times</h2>
+      <div id="blockedList"></div>
+    </div>
+  </div>
+</section>
+
+<section id="schedule" class="screen">
+  <div class="schedule-wrap desktop-schedule">
+    <div id="calendar" class="schedule"></div>
+  </div>
+  <div id="mobileSchedule" class="mobile-list"></div>
+</section>
 </main>
+
 <script>
-const days=[{id:'sun',name:'Sunday'},{id:'mon',name:'Monday'},{id:'tue',name:'Tuesday'},{id:'wed',name:'Wednesday'},{id:'thu',name:'Thursday'},{id:'fri',name:'Friday'}];
+const API_URL = "https://script.google.com/macros/s/AKfycbzhhd5TSoPA7Brqyl56NFT2JK_Vw1T6wqnqz2YYnZjbXZ-GFlLbKujykUUmlVUuknxr/exec";
+const days=[
+  {id:'sun',name:'Sunday',start:'08:00',end:'18:00'},
+  {id:'mon',name:'Monday',start:'08:00',end:'18:00'},
+  {id:'tue',name:'Tuesday',start:'08:00',end:'18:00'},
+  {id:'wed',name:'Wednesday',start:'08:00',end:'18:00'},
+  {id:'thu',name:'Thursday',start:'08:00',end:'18:00'},
+  {id:'fri',name:'Friday',start:'08:00',end:'15:00'}
+];
 let students=[];let blockedTimes=[];
-function toMin(t){const p=String(t||'00:00').split(':').map(Number);return p[0]*60+p[1]}
+
+function uid(){return Math.random().toString(36).slice(2,9)}
+function toMin(t){const [h,m]=String(t||'00:00').split(':').map(Number);return h*60+m}
 function pad(n){return String(n).padStart(2,'0')}
-function fromMin(m){return pad(Math.floor(m/60))+':'+pad(m%60)}
-function escapeHtml(str){return String(str??'').replace(/[&<>"']/g,function(s){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[s]})}
-function normalizeStudent(student){const s={...student};if(!s.firstName && s.name){const parts=String(s.name).trim().split(/\s+/);s.firstName=parts.shift()||'';s.lastName=parts.join(' ')}s.name=[s.firstName||'',s.lastName||''].filter(Boolean).join(' ').trim();return s}
-function studentDisplayName(s){const n=normalizeStudent(s);return [n.firstName||'',n.lastName||''].filter(Boolean).join(' ').trim()||n.name||'Student'}
-function sortedStudents(){return [...students].map(normalizeStudent).sort(function(a,b){const first=String(a.firstName||'').localeCompare(String(b.firstName||''),['he','en'],{sensitivity:'base'});if(first!==0)return first;return String(a.lastName||'').localeCompare(String(b.lastName||''),['he','en'],{sensitivity:'base'})})}
-function saveLocal(){localStorage.setItem('pls_mobile_viewer_students',JSON.stringify(students));localStorage.setItem('pls_mobile_viewer_blocked',JSON.stringify(blockedTimes))}
-function loadLocal(){students=JSON.parse(localStorage.getItem('pls_mobile_viewer_students')||'[]').map(normalizeStudent);blockedTimes=JSON.parse(localStorage.getItem('pls_mobile_viewer_blocked')||'[]')}
-function render(){const root=document.getElementById('schedule');root.innerHTML='';days.forEach(function(day){const events=[];sortedStudents().forEach(function(s){(s.lessons||[]).forEach(function(l){if(l.day===day.id){const start=toMin(l.start);const end=start+Number(s.duration||45);events.push({type:'lesson',name:studentDisplayName(s),start:start,end:end,duration:Number(s.duration||45)})}})});blockedTimes.forEach(function(b){if(b.day===day.id){events.push({type:'blocked',name:'Blocked Time',start:toMin(b.start),end:toMin(b.end),duration:toMin(b.end)-toMin(b.start)})}});events.sort(function(a,b){return a.start-b.start || a.name.localeCompare(b.name,['he','en'])});const card=document.createElement('section');card.className='day';card.innerHTML='<div class="day-head"><div class="day-title">'+day.name+'</div><div class="count">'+events.length+' item'+(events.length===1?'':'s')+'</div></div>';if(!events.length){card.innerHTML+='<div class="empty">No lessons or blocked times</div>'}else{events.forEach(function(ev){const div=document.createElement('div');div.className='event '+ev.type;div.innerHTML='<div class="row"><div class="name">'+escapeHtml(ev.name)+'</div><div class="time">'+fromMin(ev.start)+'–'+fromMin(ev.end)+'</div></div><div class="meta">'+(ev.type==='blocked'?'Unavailable':'Lesson')+' · '+ev.duration+' min</div>';card.appendChild(div)})}root.appendChild(card)})}
-document.getElementById('importFile').addEventListener('change',function(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(){try{const data=JSON.parse(reader.result);students=(data.students||[]).map(normalizeStudent);blockedTimes=data.blockedTimes||data.blocked||[];saveLocal();render();alert('Backup imported successfully.')}catch(err){alert('Could not import backup file.')}};reader.readAsText(file)});
-function clearViewer(){if(!confirm('Clear viewer data from this phone?'))return;students=[];blockedTimes=[];saveLocal();render()}
-loadLocal();render();
+function fromMin(m){return `${pad(Math.floor(m/60))}:${pad(m%60)}`}
+function dayName(id){return days.find(d=>d.id===id)?.name||id}
+function escapeHtml(str){return String(str??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[s]))}
+function setStatus(text,type='warn'){document.getElementById('syncStatus').textContent=text;const d=document.getElementById('statusDot');d.className='dot '+(type==='ok'?'ok':type==='bad'?'bad':'')}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');if(id==='schedule')renderCalendar()}
+function normalizeStudent(s){s={...s};if(!s.id&&s.ID)s.id=s.ID;if(!s.firstName&&s.FirstName)s.firstName=s.FirstName;if(!s.lastName&&s.LastName)s.lastName=s.LastName;if(!s.duration&&s.Duration)s.duration=Number(s.Duration);if(!s.firstName&&s.name){const p=String(s.name).trim().split(/\s+/);s.firstName=p.shift()||'';s.lastName=p.join(' ')}s.duration=Number(s.duration||45);s.name=[s.firstName||'',s.lastName||''].filter(Boolean).join(' ').trim();s.lessons=s.lessons||[];return s}
+function studentDisplayName(s){s=normalizeStudent(s);return [s.firstName||'',s.lastName||''].filter(Boolean).join(' ').trim()||'Student'}
+function sortedStudents(){return [...students].map(normalizeStudent).sort((a,b)=>{let x=String(a.firstName||'').localeCompare(String(b.firstName||''),['he','en'],{sensitivity:'base'});if(x)return x;return String(a.lastName||'').localeCompare(String(b.lastName||''),['he','en'],{sensitivity:'base'})})}
+
+function flattenForSheets(){
+  const sheetStudents=students.map(s=>({ID:s.id,FirstName:s.firstName||'',LastName:s.lastName||'',Duration:s.duration||45}));
+  const lessons=[];
+  students.forEach(s=>(s.lessons||[]).forEach(l=>lessons.push({StudentID:s.id,Day:l.day,StartTime:l.start})));
+  const blocked=blockedTimes.map(b=>({ID:b.id||uid(),Day:b.day,Start:b.start,End:b.end}));
+  return {students:sheetStudents,lessons,blockedTimes:blocked};
+}
+function buildFromSheets(data){
+  const map={};
+  (data.students||[]).forEach(r=>{
+    const s=normalizeStudent({id:r.ID,firstName:r.FirstName,lastName:r.LastName,duration:r.Duration,lessons:[]});
+    map[s.id]=s;
+  });
+  (data.lessons||[]).forEach(r=>{
+    const id=r.StudentID;
+    if(map[id]) map[id].lessons.push({day:r.Day,start:r.StartTime});
+  });
+  students=Object.values(map);
+  blockedTimes=(data.blockedTimes||[]).map(r=>({id:r.ID||uid(),day:r.Day,start:r.Start,end:r.End}));
+}
+
+async function loadFromSheets(){
+  try{
+    setStatus('Loading...');
+    const res=await fetch(API_URL+'?t='+Date.now());
+    const data=await res.json();
+    buildFromSheets(data);
+    renderAll();
+    setStatus('Synced','ok');
+  }catch(e){
+    console.error(e);
+    setStatus('Load failed','bad');
+    alert('Could not load from Google Sheets. Check the Apps Script deployment permissions.');
+  }
+}
+async function saveToSheets(){
+  try{
+    setStatus('Saving...');
+    await fetch(API_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(flattenForSheets())});
+    setStatus('Saved','ok');
+  }catch(e){
+    console.error(e);setStatus('Save failed','bad');alert('Could not save to Google Sheets.');
+  }
+}
+
+function renderAll(){renderStudents();renderBlocked();renderCalendar()}
+function populateDays(){
+  ['blockedDay'].forEach(id=>{const el=document.getElementById(id);el.innerHTML=days.map(d=>`<option value="${d.id}">${d.name}</option>`).join('')});
+}
+function addLessonTime(day='sun',start='16:00'){
+  const div=document.createElement('div');div.className='lesson-line';
+  div.innerHTML=`<select class="lessonDay">${days.map(d=>`<option value="${d.id}" ${d.id===day?'selected':''}>${d.name}</option>`).join('')}</select><input class="lessonStart" type="time" value="${start}"><button class="danger" onclick="this.parentElement.remove()">Remove</button>`;
+  document.getElementById('lessonTimes').appendChild(div);
+}
+function resetStudentForm(){document.getElementById('editingStudentId').value='';document.getElementById('studentFormTitle').textContent='Add Student';document.getElementById('studentFirstName').value='';document.getElementById('studentLastName').value='';document.getElementById('lessonDuration').value='45';document.getElementById('lessonTimes').innerHTML='';addLessonTime()}
+function overlaps(a1,a2,b1,b2){return a1<b2 && b1<a2}
+function findLessonConflict(editId,lessons,duration){
+  for(const lesson of lessons){
+    const ns=toMin(lesson.start), ne=ns+duration;
+    for(const s of students){
+      if(s.id===editId)continue;
+      for(const l of (s.lessons||[])){
+        if(l.day!==lesson.day)continue;
+        const es=toMin(l.start), ee=es+Number(s.duration||45);
+        if(overlaps(ns,ne,es,ee))return {student:studentDisplayName(s),day:lesson.day,start:fromMin(ns),end:fromMin(ne),existingStart:fromMin(es),existingEnd:fromMin(ee)};
+      }
+    }
+  }
+  return null;
+}
+async function saveStudent(){
+  const id=document.getElementById('editingStudentId').value||uid();
+  const firstName=document.getElementById('studentFirstName').value.trim();
+  const lastName=document.getElementById('studentLastName').value.trim();
+  const duration=Number(document.getElementById('lessonDuration').value);
+  if(!firstName||!duration){alert('Please enter first name and lesson duration.');return}
+  const lessons=[...document.querySelectorAll('.lesson-line')].map(x=>({day:x.querySelector('.lessonDay').value,start:x.querySelector('.lessonStart').value})).filter(x=>x.start);
+  const conflict=findLessonConflict(id,lessons,duration);
+  if(conflict){alert(`Cannot add this lesson on ${dayName(conflict.day)} at ${conflict.start}–${conflict.end}.\nThis time is already booked by ${conflict.student} (${conflict.existingStart}–${conflict.existingEnd}).`);return}
+  const obj={id,firstName,lastName,duration,lessons};
+  const i=students.findIndex(s=>s.id===id);if(i>=0)students[i]=obj;else students.push(obj);
+  renderAll();resetStudentForm();await saveToSheets();
+}
+function editStudent(id){const s=normalizeStudent(students.find(x=>x.id===id));if(!s)return;document.getElementById('editingStudentId').value=s.id;document.getElementById('studentFormTitle').textContent='Edit Student';document.getElementById('studentFirstName').value=s.firstName||'';document.getElementById('studentLastName').value=s.lastName||'';document.getElementById('lessonDuration').value=s.duration;document.getElementById('lessonTimes').innerHTML='';(s.lessons||[]).forEach(l=>addLessonTime(l.day,l.start));if(!s.lessons.length)addLessonTime();showScreen('settings')}
+async function deleteStudent(id){if(!confirm('Delete student?'))return;students=students.filter(s=>s.id!==id);renderAll();await saveToSheets()}
+function renderStudents(){const el=document.getElementById('studentList');el.innerHTML='';if(!students.length){el.innerHTML='<div class="empty">No students yet</div>';return}sortedStudents().forEach(s=>{const d=document.createElement('div');d.className='item';d.innerHTML=`<div><b>${escapeHtml(studentDisplayName(s))}</b><br><small>${s.duration} minutes · ${s.lessons?.length||0} weekly lessons</small><br><span class="badge">${(s.lessons||[]).map(l=>dayName(l.day)+' '+l.start).join(' · ')||'No lessons'}</span></div><div class="actions"><button class="secondary" onclick="editStudent('${s.id}')">Edit</button><button class="danger" onclick="deleteStudent('${s.id}')">Delete</button></div>`;el.appendChild(d)})}
+
+async function saveBlockedTime(){
+  const b={id:uid(),day:document.getElementById('blockedDay').value,start:document.getElementById('blockedStart').value,end:document.getElementById('blockedEnd').value};
+  if(toMin(b.end)<=toMin(b.start)){alert('End time must be after start time.');return}
+  blockedTimes.push(b);renderAll();await saveToSheets();
+}
+async function deleteBlocked(id){blockedTimes=blockedTimes.filter(b=>b.id!==id);renderAll();await saveToSheets()}
+function renderBlocked(){const el=document.getElementById('blockedList');el.innerHTML='';if(!blockedTimes.length){el.innerHTML='<div class="empty">No blocked times</div>';return}[...blockedTimes].sort((a,b)=>days.findIndex(d=>d.id===a.day)-days.findIndex(d=>d.id===b.day)||toMin(a.start)-toMin(b.start)).forEach(b=>{const d=document.createElement('div');d.className='item';d.innerHTML=`<div><b>${dayName(b.day)} ${b.start}–${b.end}</b><br><small>Unavailable</small></div><div class="actions"><button class="danger" onclick="deleteBlocked('${b.id}')">Delete</button></div>`;el.appendChild(d)})}
+
+function dayEvents(day){
+  const ev=[];sortedStudents().forEach(s=>(s.lessons||[]).forEach(l=>{if(l.day===day.id){const st=toMin(l.start), en=st+Number(s.duration||45);ev.push({type:'lesson',name:studentDisplayName(s),start:st,end:en,duration:Number(s.duration||45)})}}));
+  blockedTimes.forEach(b=>{if(b.day===day.id)ev.push({type:'blocked',name:'Blocked Time',start:toMin(b.start),end:toMin(b.end),duration:toMin(b.end)-toMin(b.start)})});
+  return ev.sort((a,b)=>a.start-b.start||a.name.localeCompare(b.name,['he','en']));
+}
+function renderCalendar(){
+  const cal=document.getElementById('calendar');cal.innerHTML='<div class="head"></div>'+days.map(d=>`<div class="head">${d.name}</div>`).join('');
+  const maxRows=10;
+  cal.innerHTML += Array.from({length:maxRows},(_,i)=>`<div class="time">${fromMin(480+i*60)}</div>${days.map(()=>'<div class="cell"></div>').join('')}`).join('');
+  days.forEach(day=>{
+    const col=document.createElement('div');col.className='daycol';
+    const startDay=toMin(day.start), endDay=toMin(day.end), total=endDay-startDay;
+    for(let m=startDay;m<endDay;m+=60){const line=document.createElement('div');line.className='hour-line';col.appendChild(line)}
+    dayEvents(day).forEach(ev=>{const div=document.createElement('div');div.className='event '+ev.type;div.style.top=((ev.start-startDay)/60*46)+'px';div.style.height=Math.max(22,((ev.end-ev.start)/60*46)-3)+'px';div.innerHTML=`<b>${escapeHtml(ev.name)} · ${fromMin(ev.start)}–${fromMin(ev.end)}</b>`;col.appendChild(div)});
+    cal.appendChild(col);
+  });
+  renderMobileSchedule();
+}
+function renderMobileSchedule(){
+  const root=document.getElementById('mobileSchedule');root.innerHTML='';
+  days.forEach(day=>{const events=dayEvents(day);const card=document.createElement('div');card.className='card';card.style.marginBottom='12px';card.innerHTML=`<h2>${day.name}</h2>`;if(!events.length)card.innerHTML+='<div class="empty">No lessons or blocked times</div>';events.forEach(ev=>{const div=document.createElement('div');div.className='item';div.innerHTML=`<div><b>${escapeHtml(ev.name)}</b><br><small>${fromMin(ev.start)}–${fromMin(ev.end)} · ${ev.duration} min</small></div>`;card.appendChild(div)});root.appendChild(card)});
+}
+populateDays();resetStudentForm();loadFromSheets();
 </script>
 </body>
 </html>
