@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Private Lessons - Hemda Moses v3.7</title>
+<title>Private Lessons - Hemda Moses v3.8</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -169,6 +169,120 @@ small,.badge{color:var(--muted);font-weight:600}
   }
 }
 
+
+/* v3.8 real mobile calendar */
+.mobile-real-calendar{display:none}
+@media(max-width:900px){
+  .desktop-schedule{display:none !important;}
+  .mobile-list{display:none !important;}
+  .mobile-week-simple{display:none !important;}
+  .mobile-real-calendar{
+    display:block !important;
+    visibility:visible !important;
+    opacity:1 !important;
+  }
+  .mobile-real-note{
+    color:var(--muted);
+    font-size:12px;
+    font-weight:700;
+    text-align:center;
+    margin:0 0 8px;
+  }
+  .mobile-real-scroll{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    border:1px solid var(--line);
+    border-radius:16px;
+    background:#fff;
+    box-shadow:0 8px 22px rgba(75,54,140,.08);
+  }
+  .mobile-real-grid{
+    display:grid;
+    grid-template-columns:44px repeat(6,104px);
+    width:max-content;
+    min-width:668px;
+    background:#fff;
+  }
+  .mobile-real-head{
+    height:34px;
+    background:#fbfaff;
+    border-right:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    font-size:11px;
+    font-weight:800;
+    color:#4d3f83;
+    position:sticky;
+    top:0;
+    z-index:8;
+  }
+  .mobile-real-timecol{
+    position:relative;
+    width:44px;
+    height:600px;
+    background:#fbfaff;
+    border-right:1px solid var(--line);
+  }
+  .mobile-real-time{
+    position:absolute;
+    left:0;
+    right:0;
+    height:60px;
+    border-bottom:1px solid var(--line);
+    font-size:10px;
+    color:var(--muted);
+    text-align:center;
+    font-weight:800;
+    padding-top:4px;
+  }
+  .mobile-real-day{
+    position:relative;
+    width:104px;
+    height:600px;
+    border-right:1px solid var(--line);
+    background:#fff;
+  }
+  .mobile-real-hour{
+    position:absolute;
+    left:0;
+    right:0;
+    height:60px;
+    border-bottom:1px solid var(--line);
+  }
+  .mobile-real-closed{
+    position:absolute;
+    left:0;
+    right:0;
+    background:#f4f1fb;
+    border-top:1px solid var(--line);
+  }
+  .mobile-real-event{
+    position:absolute;
+    left:3px;
+    right:3px;
+    border-radius:8px;
+    padding:4px 4px;
+    font-size:10px;
+    line-height:1.12;
+    font-weight:800;
+    overflow:hidden;
+    background:linear-gradient(135deg,#fff,#f7f4ff);
+    border:1px solid #d7cdfc;
+    border-left:4px solid var(--purple);
+    color:var(--text);
+    z-index:5;
+    box-shadow:0 3px 8px rgba(75,54,140,.09);
+  }
+  .mobile-real-event.blocked{
+    background:#eeeaf7;
+    border-color:#d6d0e6;
+    border-left-color:#9d96b8;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -176,7 +290,7 @@ small,.badge{color:var(--muted);font-weight:600}
   <div class="header-row">
     <div>
       <h1>Private Lessons - Hemda Moses</h1>
-      <div class="sub">Version 3.7 · Clean Mobile Weekly View</div>
+      <div class="sub">Version 3.8 · Real Mobile Calendar</div>
     </div>
     <div class="tabs">
       <span class="status"><span id="statusDot" class="dot"></span><span id="syncStatus">Loading...</span></span>
@@ -232,6 +346,7 @@ small,.badge{color:var(--muted);font-weight:600}
     <div id="calendar" class="schedule"></div>
   </div>
   <div class="mobile-week-simple"><div class="mobile-week-note">Swipe sideways to see the full week</div><div class="mobile-week-table-wrap"><table id="mobileWeekSimple" class="mobile-week-table"></table></div></div>
+  <div class="mobile-real-calendar"><div class="mobile-real-note">Swipe sideways to see the full week</div><div class="mobile-real-scroll"><div id="mobileRealGrid" class="mobile-real-grid"></div></div></div>
   <div id="mobileSchedule" class="mobile-list"></div>
 </section>
 </main>
@@ -450,6 +565,7 @@ function renderCalendar(){
   });
 
   cal.appendChild(body);
+  renderMobileRealCalendar();
   renderMobileWeekSimple();
   renderMobileSchedule();
 }
@@ -472,6 +588,78 @@ function renderMobileWeekSimple(){
   }
   html += '</tbody>';
   table.innerHTML=html;
+}
+
+
+function renderMobileRealCalendar(){
+  const grid=document.getElementById('mobileRealGrid');
+  if(!grid) return;
+  const dayStart=toMin('08:00');
+  const visibleEnd=toMin('18:00');
+  const pxPerMin=1; // 60px per hour
+  const totalHeight=(visibleEnd-dayStart)*pxPerMin;
+
+  grid.innerHTML='';
+
+  const blank=document.createElement('div');
+  blank.className='mobile-real-head';
+  grid.appendChild(blank);
+
+  days.forEach(day=>{
+    const head=document.createElement('div');
+    head.className='mobile-real-head';
+    head.textContent=day.name.slice(0,3);
+    grid.appendChild(head);
+  });
+
+  const timeCol=document.createElement('div');
+  timeCol.className='mobile-real-timecol';
+  timeCol.style.height=totalHeight+'px';
+  for(let m=dayStart;m<visibleEnd;m+=60){
+    const t=document.createElement('div');
+    t.className='mobile-real-time';
+    t.style.top=((m-dayStart)*pxPerMin)+'px';
+    t.textContent=fromMin(m);
+    timeCol.appendChild(t);
+  }
+  grid.appendChild(timeCol);
+
+  days.forEach(day=>{
+    const col=document.createElement('div');
+    col.className='mobile-real-day';
+    col.style.height=totalHeight+'px';
+
+    for(let m=dayStart;m<visibleEnd;m+=60){
+      const line=document.createElement('div');
+      line.className='mobile-real-hour';
+      line.style.top=((m-dayStart)*pxPerMin)+'px';
+      col.appendChild(line);
+    }
+
+    const endDay=toMin(day.end);
+    if(endDay<visibleEnd){
+      const closed=document.createElement('div');
+      closed.className='mobile-real-closed';
+      closed.style.top=((endDay-dayStart)*pxPerMin)+'px';
+      closed.style.height=((visibleEnd-endDay)*pxPerMin)+'px';
+      col.appendChild(closed);
+    }
+
+    dayEvents(day).forEach(ev=>{
+      const clippedStart=Math.max(ev.start,dayStart);
+      const clippedEnd=Math.min(ev.end,visibleEnd);
+      if(clippedEnd<=clippedStart) return;
+
+      const card=document.createElement('div');
+      card.className='mobile-real-event '+ev.type;
+      card.style.top=((clippedStart-dayStart)*pxPerMin+2)+'px';
+      card.style.height=Math.max(18,((clippedEnd-clippedStart)*pxPerMin)-4)+'px';
+      card.innerHTML=escapeHtml(ev.name)+'<br>'+fromMin(ev.start)+'–'+fromMin(ev.end);
+      col.appendChild(card);
+    });
+
+    grid.appendChild(col);
+  });
 }
 
 function renderMobileSchedule(){

@@ -1,7 +1,8 @@
-# Private Lessons - Google Sheets Sync v3.7
+# Private Lessons - Google Sheets Sync v3.8
 
-Clean mobile weekly view:
-- stable weekly table
-- no proportional stretching on phone
-- each event appears once
-- desktop unchanged
+Real mobile calendar:
+- mobile weekly grid built with absolute positioning
+- events appear once
+- event height is proportional to duration
+- start position aligns to actual time
+- horizontal scroll for full week
