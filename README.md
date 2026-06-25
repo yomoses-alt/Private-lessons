@@ -1,3 +1,7 @@
-# Private Lessons - Google Sheets Sync v2.3
+# Private Lessons - Google Sheets Sync v3.0
 
-Calendar alignment and day normalization fix.
+Stability release:
+- Auto refresh every 30 seconds
+- Better saving status
+- Conflict prevention against blocked times
+- Calendar/day/time normalization from v2.3

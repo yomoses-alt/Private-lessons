@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Private Lessons - Hemda Moses v2.3</title>
+<title>Private Lessons - Hemda Moses v3.0</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -69,7 +69,7 @@ small,.badge{color:var(--muted);font-weight:600}
   <div class="header-row">
     <div>
       <h1>Private Lessons - Hemda Moses</h1>
-      <div class="sub">Version 2.3 · Google Sheets Sync · Calendar Alignment Fix</div>
+      <div class="sub">Version 3.0 · Stable Google Sheets Sync</div>
     </div>
     <div class="tabs">
       <span class="status"><span id="statusDot" class="dot"></span><span id="syncStatus">Loading...</span></span>
@@ -221,7 +221,7 @@ async function saveToSheets(){
   try{
     setStatus('Saving...');
     await fetch(API_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(flattenForSheets())});
-    setStatus('Saved','ok');
+    setStatus('Saved','ok'); setTimeout(loadFromSheets,900);
   }catch(e){
     console.error(e);setStatus('Save failed','bad');alert('Could not save to Google Sheets.');
   }
@@ -252,6 +252,21 @@ function findLessonConflict(editId,lessons,duration){
   }
   return null;
 }
+
+function findBlockedConflict(lessons,duration){
+  for(const lesson of lessons){
+    const ns=toMin(lesson.start), ne=ns+duration;
+    for(const b of blockedTimes){
+      if(normalizeDay(b.day)!==normalizeDay(lesson.day)) continue;
+      const bs=toMin(b.start), be=toMin(b.end);
+      if(overlaps(ns,ne,bs,be)){
+        return {day:lesson.day,start:fromMin(ns),end:fromMin(ne),blockedStart:fromMin(bs),blockedEnd:fromMin(be)};
+      }
+    }
+  }
+  return null;
+}
+
 async function saveStudent(){
   const id=document.getElementById('editingStudentId').value||uid();
   const firstName=document.getElementById('studentFirstName').value.trim();
@@ -261,6 +276,8 @@ async function saveStudent(){
   const lessons=[...document.querySelectorAll('.lesson-line')].map(x=>({day:x.querySelector('.lessonDay').value,start:x.querySelector('.lessonStart').value})).filter(x=>x.start);
   const conflict=findLessonConflict(id,lessons,duration);
   if(conflict){alert(`Cannot add this lesson on ${dayName(conflict.day)} at ${conflict.start}–${conflict.end}.\nThis time is already booked by ${conflict.student} (${conflict.existingStart}–${conflict.existingEnd}).`);return}
+  const blockedConflict=findBlockedConflict(lessons,duration);
+  if(blockedConflict){alert(`Cannot add this lesson on ${dayName(blockedConflict.day)} at ${blockedConflict.start}–${blockedConflict.end}.\nThis time is blocked (${blockedConflict.blockedStart}–${blockedConflict.blockedEnd}).`);return}
   const obj={id,firstName,lastName,duration,lessons};
   const i=students.findIndex(s=>s.id===id);if(i>=0)students[i]=obj;else students.push(obj);
   renderAll();resetStudentForm();await saveToSheets();
@@ -332,6 +349,7 @@ function renderMobileSchedule(){
   days.forEach(day=>{const events=dayEvents(day);const card=document.createElement('div');card.className='card';card.style.marginBottom='12px';card.innerHTML=`<h2>${day.name}</h2>`;if(!events.length)card.innerHTML+='<div class="empty">No lessons or blocked times</div>';events.forEach(ev=>{const div=document.createElement('div');div.className='item';div.innerHTML=`<div><b>${escapeHtml(ev.name)}</b><br><small>${fromMin(ev.start)}–${fromMin(ev.end)} · ${ev.duration} min</small></div>`;card.appendChild(div)});root.appendChild(card)});
 }
 populateDays();resetStudentForm();loadFromSheets();
+setInterval(()=>{if(!document.hidden)loadFromSheets()},30000);
 </script>
 </body>
 </html>
