@@ -1,6 +1,7 @@
-# Private Lessons - Google Sheets Sync v3.6
+# Private Lessons - Google Sheets Sync v3.7
 
-Mobile weekly view:
-- each lesson/blocked time appears once
-- cards are proportional to duration
-- start position inside the hour row is preserved
+Clean mobile weekly view:
+- stable weekly table
+- no proportional stretching on phone
+- each event appears once
+- desktop unchanged
