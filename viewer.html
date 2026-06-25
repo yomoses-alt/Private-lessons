@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Private Lessons - Mobile Viewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4efff;--card:#ffffff;--purple:#6d5dfc;--purple2:#7b4dff;--text:#3d2f6b;--muted:#7b7199;--line:#ded6ff}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Quicksand",system-ui,-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text)}
+header{position:sticky;top:0;z-index:10;background:linear-gradient(135deg,var(--purple),var(--purple2));color:white;padding:14px 14px 12px;box-shadow:0 6px 18px rgba(77,61,180,.22)}
+h1{font-size:20px;margin:0;font-weight:700}.subtitle{font-size:12px;opacity:.9;margin-top:3px}
+.toolbar{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap}
+button,label.file-btn{border:0;background:white;color:var(--purple);border-radius:12px;padding:9px 12px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer}
+input[type=file]{display:none}main{padding:12px;max-width:720px;margin:auto}
+.day{background:var(--card);border:1px solid var(--line);border-radius:18px;margin-bottom:12px;overflow:hidden;box-shadow:0 8px 20px rgba(75,54,140,.08)}
+.day-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:#fbf9ff;border-bottom:1px solid var(--line)}
+.day-title{font-weight:700;font-size:18px}.count{font-size:12px;color:var(--muted);font-weight:600}
+.event{margin:10px 12px;padding:12px;border-radius:14px;border:1px solid #d7cdfc;background:linear-gradient(135deg,#fff,#f7f4ff)}
+.event.lesson{border-left:5px solid var(--purple)}.event.blocked{background:#eeeaf7;border-color:#d6d0e6;border-left:5px solid #9d96b8}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.name{font-size:16px;font-weight:700}.time{font-size:14px;font-weight:700;color:var(--purple)}
+.meta{font-size:12px;color:var(--muted);margin-top:4px}.empty{padding:16px;text-align:center;color:var(--muted);font-weight:600}
+.footer-note{text-align:center;color:var(--muted);font-size:12px;padding:12px 4px 20px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Private Lessons - Hemda Moses</h1>
+  <div class="subtitle">Mobile Viewer · read-only weekly schedule</div>
+  <div class="toolbar">
+    <label class="file-btn" for="importFile">Import Backup</label>
+    <input id="importFile" type="file" accept="application/json,.json">
+    <button onclick="clearViewer()">Clear</button>
+  </div>
+</header>
+<main>
+  <div id="schedule"></div>
+  <div class="footer-note">Viewer only: update by importing a backup from the full desktop version.</div>
+</main>
+<script>
+const days=[{id:'sun',name:'Sunday'},{id:'mon',name:'Monday'},{id:'tue',name:'Tuesday'},{id:'wed',name:'Wednesday'},{id:'thu',name:'Thursday'},{id:'fri',name:'Friday'}];
+let students=[];let blockedTimes=[];
+function toMin(t){const p=String(t||'00:00').split(':').map(Number);return p[0]*60+p[1]}
+function pad(n){return String(n).padStart(2,'0')}
+function fromMin(m){return pad(Math.floor(m/60))+':'+pad(m%60)}
+function escapeHtml(str){return String(str??'').replace(/[&<>"']/g,function(s){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[s]})}
+function normalizeStudent(student){const s={...student};if(!s.firstName && s.name){const parts=String(s.name).trim().split(/\s+/);s.firstName=parts.shift()||'';s.lastName=parts.join(' ')}s.name=[s.firstName||'',s.lastName||''].filter(Boolean).join(' ').trim();return s}
+function studentDisplayName(s){const n=normalizeStudent(s);return [n.firstName||'',n.lastName||''].filter(Boolean).join(' ').trim()||n.name||'Student'}
+function sortedStudents(){return [...students].map(normalizeStudent).sort(function(a,b){const first=String(a.firstName||'').localeCompare(String(b.firstName||''),['he','en'],{sensitivity:'base'});if(first!==0)return first;return String(a.lastName||'').localeCompare(String(b.lastName||''),['he','en'],{sensitivity:'base'})})}
+function saveLocal(){localStorage.setItem('pls_mobile_viewer_students',JSON.stringify(students));localStorage.setItem('pls_mobile_viewer_blocked',JSON.stringify(blockedTimes))}
+function loadLocal(){students=JSON.parse(localStorage.getItem('pls_mobile_viewer_students')||'[]').map(normalizeStudent);blockedTimes=JSON.parse(localStorage.getItem('pls_mobile_viewer_blocked')||'[]')}
+function render(){const root=document.getElementById('schedule');root.innerHTML='';days.forEach(function(day){const events=[];sortedStudents().forEach(function(s){(s.lessons||[]).forEach(function(l){if(l.day===day.id){const start=toMin(l.start);const end=start+Number(s.duration||45);events.push({type:'lesson',name:studentDisplayName(s),start:start,end:end,duration:Number(s.duration||45)})}})});blockedTimes.forEach(function(b){if(b.day===day.id){events.push({type:'blocked',name:'Blocked Time',start:toMin(b.start),end:toMin(b.end),duration:toMin(b.end)-toMin(b.start)})}});events.sort(function(a,b){return a.start-b.start || a.name.localeCompare(b.name,['he','en'])});const card=document.createElement('section');card.className='day';card.innerHTML='<div class="day-head"><div class="day-title">'+day.name+'</div><div class="count">'+events.length+' item'+(events.length===1?'':'s')+'</div></div>';if(!events.length){card.innerHTML+='<div class="empty">No lessons or blocked times</div>'}else{events.forEach(function(ev){const div=document.createElement('div');div.className='event '+ev.type;div.innerHTML='<div class="row"><div class="name">'+escapeHtml(ev.name)+'</div><div class="time">'+fromMin(ev.start)+'–'+fromMin(ev.end)+'</div></div><div class="meta">'+(ev.type==='blocked'?'Unavailable':'Lesson')+' · '+ev.duration+' min</div>';card.appendChild(div)})}root.appendChild(card)})}
+document.getElementById('importFile').addEventListener('change',function(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(){try{const data=JSON.parse(reader.result);students=(data.students||[]).map(normalizeStudent);blockedTimes=data.blockedTimes||data.blocked||[];saveLocal();render();alert('Backup imported successfully.')}catch(err){alert('Could not import backup file.')}};reader.readAsText(file)});
+function clearViewer(){if(!confirm('Clear viewer data from this phone?'))return;students=[];blockedTimes=[];saveLocal();render()}
+loadLocal();render();
+</script>
+</body>
+</html>

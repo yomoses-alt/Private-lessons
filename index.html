@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Private Lessons - Hemda Moses v1.4</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f5f0ff; --bg2:#fbf8ff; --card:#ffffff; --text:#3f2b63; --muted:#7f6b9f;
+      --primary:#7e57c2; --primary2:#a78bfa; --accent:#c4b5fd; --border:#ddd0f6;
+      --soft:#f0e8ff; --danger:#b4235a; --danger-soft:#ffe4ef; --blocked:#e8e2f1;
+      --lesson:#efe5ff; --lesson-border:#9b7ee8; --shadow:0 18px 45px rgba(91,63,150,.15);
+      --radius:20px; --hour-height:54px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:"Quicksand",system-ui,-apple-system,BlinkMacSystemFont,sans-serif;color:var(--text);background:
+      radial-gradient(circle at top right, rgba(126,87,194,.25), transparent 32%),
+      radial-gradient(circle at top left, rgba(167,139,250,.22), transparent 28%),var(--bg);}
+    .app{max-width:1280px;margin:0 auto;padding:12px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;background:rgba(255,255,255,.76);border:1px solid rgba(221,208,246,.85);border-radius:22px;padding:10px 14px;box-shadow:var(--shadow);backdrop-filter:blur(12px)}
+    .title h1{margin:0;font-size:22px;letter-spacing:-.4px}.title p{margin:3px 0 0;color:var(--muted);font-size:13px}
+    .tabs{display:flex;gap:10px;flex-wrap:wrap;background:#fbf8ff;border:1px solid var(--border);padding:6px;border-radius:18px}
+    button{font-family:inherit;border:0;border-radius:13px;padding:8px 13px;cursor:pointer;font-weight:800;background:var(--soft);color:var(--primary);transition:.16s ease;white-space:nowrap}
+    button:hover{transform:translateY(-1px);filter:brightness(.98)}button.active,button.primary{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;box-shadow:0 10px 20px rgba(126,87,194,.25)}
+    button.secondary{background:#fbf8ff;color:#5e4785;border:1px solid #d9ccf5}button.danger{background:var(--danger-soft);color:var(--danger)}
+    .screen{display:none}.screen.active{display:block}.grid{display:grid;grid-template-columns:minmax(360px,1fr) minmax(420px,1fr);gap:18px}.stack{display:grid;gap:18px;margin-top:18px}
+    .card{background:rgba(255,255,255,.88);border:1px solid rgba(221,208,246,.95);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;backdrop-filter:blur(10px)}
+    .card h2,.card h3{margin:0 0 14px}.card h2{font-size:22px}.sub{color:var(--muted);font-size:14px;margin-top:-8px;margin-bottom:14px}
+    .row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+    label{display:block;font-size:13px;color:var(--muted);margin:0 0 7px;font-weight:700}input,select{font-family:inherit;width:100%;border:1px solid var(--border);border-radius:14px;padding:11px 12px;background:#fff;font-size:15px;color:var(--text);outline:none}
+    input:focus,select:focus{border-color:#a78bfa;box-shadow:0 0 0 4px rgba(126,87,194,.18)}
+    .form-section{border-top:1px solid var(--border);padding-top:16px;margin-top:16px}.lesson-line,.blocked-line{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin-bottom:10px;background:#fbf8ff;border:1px solid #ded1f6;border-radius:18px;padding:12px}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.list{display:flex;flex-direction:column;gap:10px}.item{border:1px solid var(--border);border-radius:18px;padding:14px;background:linear-gradient(180deg,#fff,#fbf8ff);display:flex;justify-content:space-between;gap:12px;align-items:center}
+    .item b{font-size:16px}.item small{color:var(--muted)}.empty{color:var(--muted);padding:16px;border:1px dashed var(--border);border-radius:18px;background:#fbf8ff;text-align:center}.badge{display:inline-block;background:#efe7ff;color:#62419a;border-radius:999px;padding:5px 9px;font-size:12px;margin-top:6px;line-height:1.7}
+    .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap}.topbar h2{margin:0;font-size:20px}.legend{display:flex;gap:8px;color:var(--muted);font-size:12px;align-items:center}.dot{width:14px;height:14px;border-radius:5px;display:inline-block;border:1px solid var(--border)}.dot.lesson{background:var(--lesson);border-color:var(--lesson-border)}.dot.blocked{background:var(--blocked)}
+    .schedule-wrap{background:rgba(255,255,255,.92);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:auto;max-height:calc(100vh - 94px)}
+    .schedule{display:grid;grid-template-columns:58px repeat(6,minmax(132px,1fr));min-width:850px;direction:ltr}.head{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,#fbf8ff,#efe7ff);font-weight:900;text-align:center;padding:8px 5px;border-left:1px solid var(--border);border-bottom:1px solid var(--border);font-size:14px}
+    .time-cell{height:var(--hour-height);background:#fbf8ff;color:var(--muted);font-weight:900;text-align:center;border-left:1px solid var(--border);border-bottom:1px solid var(--border);padding-top:7px;font-size:13px}
+    .day-hour{height:var(--hour-height);position:relative;background:#fffefe;border-left:1px solid var(--border);border-bottom:1px solid var(--border);overflow:visible;background-image:linear-gradient(to bottom, transparent 24%, rgba(226,232,240,.7) 24%, rgba(226,232,240,.7) 25%, transparent 25%, transparent 49%, rgba(226,232,240,.7) 49%, rgba(226,232,240,.7) 50%, transparent 50%, transparent 74%, rgba(226,232,240,.7) 74%, rgba(226,232,240,.7) 75%, transparent 75%)}
+    .day-hour.off{background:#f1f5f9}.event{position:absolute;right:4px;left:4px;border-radius:10px;padding:3px 5px;font-size:12.5px;line-height:1.15;overflow:hidden;border:1px solid var(--lesson-border);background:linear-gradient(180deg,#ffe1ee,#fbf8ff);box-shadow:0 5px 10px rgba(126,87,194,.16);z-index:3}.event b{display:inline;font-size:12.8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.event .meta{opacity:.9;white-space:nowrap}.event.lesson{display:flex;align-items:flex-start;gap:4px}.event.lesson b{min-width:0;flex:1}.event.lesson .meta{font-size:12px;flex:0 0 auto}.event.blocked b{display:block}.event.blocked{background:repeating-linear-gradient(135deg,#e5e7eb,#e5e7eb 8px,#f3f4f6 8px,#f3f4f6 16px);border-color:#cbd5e1;color:#334155;box-shadow:none;z-index:2}
+    .hint{font-size:13px;color:var(--muted);margin-top:10px}.small-muted{font-size:12px;color:var(--muted)}
+    @media(max-width:900px){.grid,.row,.row3{grid-template-columns:1fr}header{align-items:stretch;flex-direction:column}.lesson-line,.blocked-line{grid-template-columns:1fr}.app{padding:12px}.title h1{font-size:24px}}
+    @media (max-width:1100px){
+      :root{--hour-height:50px}.app{padding:8px}header{padding:8px 10px}.title h1{font-size:19px}.title p{display:none}.schedule{grid-template-columns:52px repeat(6,minmax(118px,1fr));min-width:760px}.head{font-size:13px;padding:7px 3px}.event{font-size:10.5px}.event b{font-size:11.5px}.small-muted{display:none}.schedule-wrap{max-height:calc(100vh - 78px)}
+    }
+    @media print{body{background:#fff}.tabs,.actions,.no-print{display:none!important}.app{max-width:none;padding:0}header{box-shadow:none;border:0;padding:0;margin-bottom:6px}.screen{display:block}.screen:not(#scheduleScreen){display:none}.schedule-wrap{max-height:none;overflow:visible;box-shadow:none;border:0}.schedule{min-width:0;grid-template-columns:55px repeat(6,1fr)}:root{--hour-height:62px}.head{position:static;padding:6px;font-size:11px}.time-cell{font-size:10px;padding-top:4px}.event{font-size:8px;padding:2px 4px;border-radius:6px}.event b{font-size:9px}}
+    button,.primary-btn,.tab-btn,.add-btn{
+      background:linear-gradient(135deg,#5B6CFF,#7B4DFF) !important;
+      color:#fff !important;
+      box-shadow:0 8px 18px rgba(91,108,255,.22);
+    }
+    button:hover,.primary-btn:hover,.tab-btn:hover,.add-btn:hover{
+      background:linear-gradient(135deg,#4A58D8,#673BE8) !important;
+      transform:translateY(-1px);
+    }
+    .student-card{
+      background:#fff;
+      border:1px solid #d8d0ff;
+      border-radius:16px;
+      padding:13px 14px;
+      margin:10px 0;
+      box-shadow:0 6px 16px rgba(91,108,255,.08);
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+    }
+    .student-card .student-name{
+      font-weight:700;
+      font-size:17px;
+      color:#4b3b8f;
+    }
+    .student-card .student-meta{
+      font-size:13px;
+      color:#766aa3;
+      margin-top:3px;
+    }
+    .student-card .student-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .student-card .student-actions button{
+      padding:7px 11px;
+      font-size:13px;
+      border-radius:10px;
+    }
+
+  
+    h1,h2,h3,.brand-title,button,input,select,textarea{
+      font-family:"Quicksand",system-ui,-apple-system,BlinkMacSystemFont,sans-serif !important;
+    }
+    .student-list,
+    #studentList,
+    #studentsList{
+      display:block !important;
+      visibility:visible !important;
+      opacity:1 !important;
+      min-height:40px;
+    }
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0 8px;
+    }
+    tr{
+      background:#fff;
+    }
+    td,th{
+      padding:10px 12px;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title"><h1 class="brand-title">Private Lessons - Hemda Moses</h1><p>Version 1.4 · Fixed weekly schedule · Local browser storage</p></div>
+      <nav class="tabs">
+        <button id="settingsTab" class="active" onclick="showScreen('settings')">Settings</button>
+        <button id="scheduleTab" onclick="showScreen('schedule')">Weekly Schedule</button>
+      </nav>
+    </header>
+
+    <main id="settingsScreen" class="screen active">
+      <div class="card" style="margin-bottom:18px">
+        <h2>Backup / Transfer</h2>
+        <div class="sub">Use these buttons to move the schedule between computer and phone.</div>
+        <div class="actions">
+          <button class="primary" onclick="exportBackup()">Export Backup</button>
+          <button class="secondary" onclick="document.getElementById('importFile').click()">Import Backup</button>
+          <input id="importFile" type="file" accept="application/json,.json" style="display:none" onchange="importBackup(event)">
+        </div>
+        <div class="hint">Export creates a small JSON file. Import restores students and blocked times on this device.</div>
+      </div>
+      <div class="grid">
+        <section class="card">
+          <h2 id="studentFormTitle">Add Student</h2>
+          <div class="sub">Set a name, lesson duration, and fixed weekly lesson times.</div>
+          <input type="hidden" id="editingStudentId" />
+          <div class="row">
+            <div><label>First Name</label><input id="studentFirstName" placeholder="Example: Maya" /></div>
+            <div><label>Last Name</label><input id="studentLastName" placeholder="Example: Cohen" /></div>
+            <div><label>Lesson Duration (minutes)</label><input id="lessonDuration" type="number" min="15" step="15" value="45" /></div>
+          </div>
+          <div class="form-section">
+            <h3>Recurring Lessons</h3>
+            <div id="lessonTimes"></div>
+            <button class="secondary" onclick="addLessonTime()">+ Add Weekly Lesson</button>
+          </div>
+          <div class="actions">
+            <button class="primary" onclick="saveStudent()">Save Student</button>
+            <button class="secondary" onclick="resetStudentForm()">Clear Form</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Student List</h2>
+          <div id="studentList" class="list"></div>
+        </section>
+      </div>
+
+      <div class="grid" style="margin-top:18px">
+        <section class="card">
+          <h2>Add Blocked Time</h2>
+          <div class="sub">Blocked times are shown in gray according to their exact duration.</div>
+          <div class="row3">
+            <div><label>Day</label><select id="blockedDay"></select></div>
+            <div><label>Start Time</label><input id="blockedStart" type="time" step="900" value="12:00" /></div>
+            <div><label>End Time</label><input id="blockedEnd" type="time" step="900" value="13:00" /></div>
+          </div>
+          <div class="actions"><button class="primary" onclick="saveBlockedTime()">Save Blocked Time</button></div>
+        </section>
+        <section class="card">
+          <h2>Blocked Times</h2>
+          <div id="blockedList" class="list"></div>
+        </section>
+      </div>
+    </main>
+
+    <main id="scheduleScreen" class="screen">
+      <div class="topbar no-print">
+        <div><h2>Fixed Weekly Schedule</h2><div class="small-muted">Compact 13-inch view: full-hour rows with lessons and blocked times sized by duration.</div></div>
+        <div class="legend"><span class="dot lesson"></span> Lesson <span class="dot blocked"></span> Blocked <button onclick="window.print()">Print</button></div>
+      </div>
+      <div class="schedule-wrap"><div id="scheduleGrid" class="schedule"></div></div>
+    </main>
+  </div>
+
+<script>
+const DAYS=[{id:'sun',name:'Sunday',start:'08:00',end:'18:00'},{id:'mon',name:'Monday',start:'08:00',end:'18:00'},{id:'tue',name:'Tuesday',start:'08:00',end:'18:00'},{id:'wed',name:'Wednesday',start:'08:00',end:'18:00'},{id:'thu',name:'Thursday',start:'08:00',end:'18:00'},{id:'fri',name:'Friday',start:'08:00',end:'15:00'}];
+let students=[];let blockedTimes=[];
+function uid(){return Math.random().toString(36).slice(2,10)}
+function toMin(t){const [h,m]=t.split(':').map(Number);return h*60+m}
+function toTime(m){return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
+function escapeHtml(str){return String(str).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+
+function exportBackup(){
+  const data={version:'1.4', exportedAt:new Date().toISOString(), students, blockedTimes};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='private-lessons-hemda-moses-backup.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+function importBackup(event){
+  const file=event.target.files && event.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const data=JSON.parse(reader.result);
+      if(!Array.isArray(data.students)||!Array.isArray(data.blockedTimes)){
+        alert('Invalid backup file.');
+        return;
+      }
+      if(!confirm('Import this backup? Current data on this device will be replaced.'))return;
+      students=data.students.map(s=>normalizeStudent(s));
+      blockedTimes=data.blockedTimes;
+      save();
+      alert('Backup imported successfully.');
+    }catch(e){
+      alert('Could not import this file.');
+    }finally{
+      event.target.value='';
+    }
+  };
+  reader.readAsText(file);
+}
+function save(){localStorage.setItem('pls_v01_students',JSON.stringify(students));localStorage.setItem('pls_v01_blocked',JSON.stringify(blockedTimes));renderAll()}
+function load(){students=JSON.parse(localStorage.getItem('pls_v01_students')||'[]').map(s=>normalizeStudent(s));blockedTimes=JSON.parse(localStorage.getItem('pls_v01_blocked')||'[]')}
+function fillDaySelects(){document.querySelectorAll('select').forEach(sel=>{if(sel.dataset.filled)return;DAYS.forEach(d=>{const o=document.createElement('option');o.value=d.id;o.textContent=d.name;sel.appendChild(o)});sel.dataset.filled='1'})}
+function dayName(id){return DAYS.find(d=>d.id===id)?.name||id}
+function addLessonTime(day='sun',time='16:00'){const wrap=document.getElementById('lessonTimes');const div=document.createElement('div');div.className='lesson-line';div.innerHTML=`<div><label>Day</label><select class="lessonDay"></select></div><div><label>Start Time</label><input class="lessonStart" type="time" step="900" value="${time}"></div><button class="danger" onclick="this.parentElement.remove()">Delete</button>`;wrap.appendChild(div);const sel=div.querySelector('select');DAYS.forEach(d=>{const o=document.createElement('option');o.value=d.id;o.textContent=d.name;sel.appendChild(o)});sel.value=day}
+function resetStudentForm(){document.getElementById('editingStudentId').value='';document.getElementById('studentFormTitle').textContent='Add Student';document.getElementById('studentFirstName').value='';document.getElementById('studentLastName').value='';document.getElementById('lessonDuration').value='45';document.getElementById('lessonTimes').innerHTML='';addLessonTime()}
+function intervalsOverlap(aStart,aEnd,bStart,bEnd){return aStart<bEnd && bStart<aEnd}
+function findLessonConflict(studentId, lessons, duration){
+  for(const lesson of lessons){
+    const newStart=toMin(lesson.start), newEnd=newStart+Number(duration);
+    for(const s of students){
+      if(s.id===studentId) continue;
+      for(const existing of (s.lessons||[])){
+        if(existing.day!==lesson.day) continue;
+        const exStart=toMin(existing.start), exEnd=exStart+Number(s.duration);
+        if(intervalsOverlap(newStart,newEnd,exStart,exEnd)){
+          return {day:lesson.day,start:lesson.start,end:toTime(newEnd),student:studentDisplayName(s),existingStart:existing.start,existingEnd:toTime(exEnd)};
+        }
+      }
+    }
+  }
+  return null;
+}
+function saveStudent(){const id=document.getElementById('editingStudentId').value||uid();const firstName=document.getElementById('studentFirstName').value.trim();const lastName=document.getElementById('studentLastName').value.trim();const name=[firstName,lastName].filter(Boolean).join(' ');const duration=Number(document.getElementById('lessonDuration').value);if(!firstName||!duration){alert('Please enter a first name and lesson duration.');return}const lessons=[...document.querySelectorAll('.lesson-line')].map(x=>({day:x.querySelector('.lessonDay').value,start:x.querySelector('.lessonStart').value})).filter(x=>x.start);const conflict=findLessonConflict(id,lessons,duration);if(conflict){alert(`Cannot add this lesson on ${dayName(conflict.day)} at ${conflict.start}–${conflict.end}.
+This time is already booked by ${conflict.student} (${conflict.existingStart}–${conflict.existingEnd}).`);return}const obj={id,firstName,lastName,name,duration,lessons};const i=students.findIndex(s=>s.id===id);if(i>=0)students[i]=obj;else students.push(obj);save();resetStudentForm()}
+function editStudent(id){const s=normalizeStudent(students.find(x=>x.id===id)||{});if(!s.id)return;document.getElementById('editingStudentId').value=s.id;document.getElementById('studentFormTitle').textContent='Edit Student';document.getElementById('studentFirstName').value=s.firstName||'';document.getElementById('studentLastName').value=s.lastName||'';document.getElementById('lessonDuration').value=s.duration;document.getElementById('lessonTimes').innerHTML='';(s.lessons||[]).forEach(l=>addLessonTime(l.day,l.start));if(!s.lessons?.length)addLessonTime();showScreen('settings')}
+function deleteStudent(id){if(confirm('Delete this student?')){students=students.filter(s=>s.id!==id);save()}}
+
+
+
+
+function normalizeStudent(student){
+  if(!student.firstName && student.name){
+    const parts = String(student.name).trim().split(/\s+/);
+    student.firstName = parts.shift() || '';
+    student.lastName = parts.join(' ');
+  }
+  student.name = [student.firstName || '', student.lastName || ''].filter(Boolean).join(' ').trim();
+  return student;
+}
+function studentDisplayName(student){
+  const s = normalizeStudent({...student});
+  return [s.firstName || '', s.lastName || ''].filter(Boolean).join(' ').trim();
+}
+function sortedStudentsByFirstName(){
+  return [...students].map(s=>normalizeStudent({...s})).sort((a,b)=>{
+    const first = String(a.firstName||'').localeCompare(String(b.firstName||''), ['he','en'], {sensitivity:'base'});
+    if(first !== 0) return first;
+    return String(a.lastName||'').localeCompare(String(b.lastName||''), ['he','en'], {sensitivity:'base'});
+  });
+}
+
+function renderStudents(){
+const el=document.getElementById('studentList');el.innerHTML='';
+if(!students.length){el.innerHTML='<div class="empty">No students yet</div>';return}
+sortedStudentsByFirstName().forEach(s=>{
+  const d=document.createElement('div');
+  d.className='item';
+  d.innerHTML=`<div><b>${escapeHtml(studentDisplayName(s))}</b><br><small>${s.duration} minutes · ${s.lessons?.length||0} weekly lessons</small><br><span class="badge">${(s.lessons||[]).map(l=>dayName(l.day)+' '+l.start).join(' · ')||'No lessons'}</span></div><div class="actions"><button class="secondary" onclick="editStudent('${s.id}')">Edit</button><button class="danger" onclick="deleteStudent('${s.id}')">Delete</button></div>`;
+  el.appendChild(d);
+})
+}
+function saveBlockedTime(){const day=document.getElementById('blockedDay').value,start=document.getElementById('blockedStart').value,end=document.getElementById('blockedEnd').value;if(!start||!end||toMin(end)<=toMin(start)){alert('Please enter a valid time range.');return}blockedTimes.push({id:uid(),day,start,end});save()}
+function deleteBlocked(id){blockedTimes=blockedTimes.filter(b=>b.id!==id);save()}
+function renderBlocked(){const el=document.getElementById('blockedList');el.innerHTML='';if(!blockedTimes.length){el.innerHTML='<div class="empty">No blocked times</div>';return}blockedTimes.forEach(b=>{const d=document.createElement('div');d.className='item';d.innerHTML=`<div><b>${dayName(b.day)}</b><br><small>${b.start}–${b.end}</small></div><button class="danger" onclick="deleteBlocked('${b.id}')">Delete</button>`;el.appendChild(d)})}
+function eventHtml(type,item,hourStart){const start=toMin(item.start), end=type==='blocked'?toMin(item.end):start+Number(item.duration);const top=((start-hourStart)/60)*100;const height=Math.max(12,((end-start)/60)*100);const title=type==='blocked'?'Blocked':escapeHtml(item.name);const meta=type==='blocked'?`${item.start}–${item.end}`:`${item.start}–${toTime(end)}`;const cls=type==='blocked'?'blocked':'lesson';return `<div class="event ${cls}" style="top:${top}%;height:calc(${height}% - 4px)"><b>${title}</b><span class="meta">${meta}</span></div>`}
+function renderSchedule(){const grid=document.getElementById('scheduleGrid');grid.innerHTML='<div class="head">Time</div>'+DAYS.map(d=>`<div class="head">${d.name}</div>`).join('');for(let m=8*60;m<18*60;m+=60){grid.insertAdjacentHTML('beforeend',`<div class="time-cell">${toTime(m)}</div>`);DAYS.forEach(day=>{const dayEnd=toMin(day.end);if(m>=dayEnd){grid.insertAdjacentHTML('beforeend','<div class="day-hour off"></div>');return}let html='';blockedTimes.filter(b=>b.day===day.id&&toMin(b.start)>=m&&toMin(b.start)<m+60).forEach(b=>html+=eventHtml('blocked',b,m));sortedStudentsByFirstName().forEach(s=>(s.lessons||[]).filter(l=>l.day===day.id&&toMin(l.start)>=m&&toMin(l.start)<m+60).forEach(l=>html+=eventHtml('lesson',{name:studentDisplayName(s),duration:s.duration,start:l.start},m)));grid.insertAdjacentHTML('beforeend',`<div class="day-hour">${html}</div>`)})}}
+function showScreen(name){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));document.getElementById(name+'Screen').classList.add('active');document.getElementById(name+'Tab').classList.add('active');if(name==='schedule')renderSchedule()}
+function renderAll(){renderStudents();renderBlocked();renderSchedule()}
+load();fillDaySelects();resetStudentForm();renderAll();
+
+
+</script>
+</body>
+</html>
