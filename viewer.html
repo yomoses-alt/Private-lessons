@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Private Lessons - Hemda Moses v3.5</title>
+<title>Private Lessons - Hemda Moses v3.6</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -101,14 +101,17 @@ small,.badge{color:var(--muted);font-weight:600}
 }
 .mobile-week-table td.day-cell{
   width:112px;
-  min-height:42px;
+  min-height:60px;
   height:42px;
 }
 .mobile-pill{
   display:block;
+  position:absolute;
+  left:3px;
+  right:3px;
   border-radius:8px;
   padding:5px 5px;
-  margin:2px 0;
+  margin:0;
   font-size:10.8px;
   line-height:1.2;
   font-weight:700;
@@ -116,6 +119,8 @@ small,.badge{color:var(--muted);font-weight:600}
   border:1px solid #d7cdfc;
   border-left:4px solid var(--purple);
   color:var(--text);
+  overflow:hidden;
+  z-index:4;
 }
 .mobile-pill.blocked{
   background:#eeeaf7;
@@ -155,7 +160,7 @@ small,.badge{color:var(--muted);font-weight:600}
   <div class="header-row">
     <div>
       <h1>Private Lessons - Hemda Moses</h1>
-      <div class="sub">Version 3.5 · Mobile Unified Cards</div>
+      <div class="sub">Version 3.6 · Mobile Proportional Cards</div>
     </div>
     <div class="tabs">
       <span class="status"><span id="statusDot" class="dot"></span><span id="syncStatus">Loading...</span></span>
@@ -443,7 +448,9 @@ function renderMobileWeekSimple(){
       const events=dayEvents(day).filter(ev=>ev.start >= hour && ev.start < hour+60);
       html += '<td class="day-cell">';
       events.forEach(ev=>{
-        html += `<span class="mobile-pill ${ev.type}">${escapeHtml(ev.name)}<br>${fromMin(ev.start)}–${fromMin(ev.end)}</span>`;
+        const top=((ev.start-hour)/60*60)+2;
+        const height=Math.max(18,((ev.end-ev.start)/60*60)-4);
+        html += `<span class="mobile-pill ${ev.type}" style="top:${top}px;height:${height}px">${escapeHtml(ev.name)}<br>${fromMin(ev.start)}–${fromMin(ev.end)}</span>`;
       });
       html += '</td>';
     });

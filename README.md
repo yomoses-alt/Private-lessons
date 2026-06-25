@@ -1,5 +1,6 @@
-# Private Lessons - Google Sheets Sync v3.5
+# Private Lessons - Google Sheets Sync v3.6
 
 Mobile weekly view:
-- lessons and blocked times appear as one unified card
-- no duplicated/split cards across multiple hour rows
+- each lesson/blocked time appears once
+- cards are proportional to duration
+- start position inside the hour row is preserved
