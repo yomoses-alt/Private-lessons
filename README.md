@@ -1,3 +1,3 @@
-# Private Lessons - Google Sheets Sync
+# Private Lessons - Google Sheets Sync v2.1
 
-Upload these files to GitHub Pages.
+Time normalization fix.

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Private Lessons - Hemda Moses v2.0</title>
+<title>Private Lessons - Hemda Moses v2.1</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -64,7 +64,7 @@ small,.badge{color:var(--muted);font-weight:600}
   <div class="header-row">
     <div>
       <h1>Private Lessons - Hemda Moses</h1>
-      <div class="sub">Version 2.0 · Google Sheets Sync</div>
+      <div class="sub">Version 2.1 · Google Sheets Sync · Time Fix</div>
     </div>
     <div class="tabs">
       <span class="status"><span id="statusDot" class="dot"></span><span id="syncStatus">Loading...</span></span>
@@ -136,7 +136,20 @@ const days=[
 let students=[];let blockedTimes=[];
 
 function uid(){return Math.random().toString(36).slice(2,9)}
-function toMin(t){const [h,m]=String(t||'00:00').split(':').map(Number);return h*60+m}
+function normalizeTimeValue(t){
+  if(t === null || t === undefined || t === '') return '00:00';
+  if(typeof t === 'number'){
+    const total = Math.round(t * 24 * 60);
+    return fromMin(total);
+  }
+  const s = String(t).trim();
+  const hm = s.match(/(\d{1,2}):(\d{2})/);
+  if(hm) return pad(Number(hm[1])) + ':' + pad(Number(hm[2]));
+  const d = new Date(s);
+  if(!isNaN(d.getTime())) return pad(d.getHours()) + ':' + pad(d.getMinutes());
+  return s;
+}
+function toMin(t){const normalized=normalizeTimeValue(t);const [h,m]=String(normalized||'00:00').split(':').map(Number);return h*60+m}
 function pad(n){return String(n).padStart(2,'0')}
 function fromMin(m){return `${pad(Math.floor(m/60))}:${pad(m%60)}`}
 function dayName(id){return days.find(d=>d.id===id)?.name||id}
@@ -150,8 +163,8 @@ function sortedStudents(){return [...students].map(normalizeStudent).sort((a,b)=
 function flattenForSheets(){
   const sheetStudents=students.map(s=>({ID:s.id,FirstName:s.firstName||'',LastName:s.lastName||'',Duration:s.duration||45}));
   const lessons=[];
-  students.forEach(s=>(s.lessons||[]).forEach(l=>lessons.push({StudentID:s.id,Day:l.day,StartTime:l.start})));
-  const blocked=blockedTimes.map(b=>({ID:b.id||uid(),Day:b.day,Start:b.start,End:b.end}));
+  students.forEach(s=>(s.lessons||[]).forEach(l=>lessons.push({StudentID:s.id,Day:l.day,StartTime:normalizeTimeValue(l.start)})));
+  const blocked=blockedTimes.map(b=>({ID:b.id||uid(),Day:b.day,Start:normalizeTimeValue(b.start),End:normalizeTimeValue(b.end)}));
   return {students:sheetStudents,lessons,blockedTimes:blocked};
 }
 function buildFromSheets(data){
@@ -162,10 +175,10 @@ function buildFromSheets(data){
   });
   (data.lessons||[]).forEach(r=>{
     const id=r.StudentID;
-    if(map[id]) map[id].lessons.push({day:r.Day,start:r.StartTime});
+    if(map[id]) map[id].lessons.push({day:r.Day,start:normalizeTimeValue(r.StartTime)});
   });
   students=Object.values(map);
-  blockedTimes=(data.blockedTimes||[]).map(r=>({id:r.ID||uid(),day:r.Day,start:r.Start,end:r.End}));
+  blockedTimes=(data.blockedTimes||[]).map(r=>({id:r.ID||uid(),day:r.Day,start:normalizeTimeValue(r.Start),end:normalizeTimeValue(r.End)}));
 }
 
 async function loadFromSheets(){
