@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Private Lessons - Hemda Moses v2.1</title>
+<title>Private Lessons - Hemda Moses v2.2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -64,7 +64,7 @@ small,.badge{color:var(--muted);font-weight:600}
   <div class="header-row">
     <div>
       <h1>Private Lessons - Hemda Moses</h1>
-      <div class="sub">Version 2.1 · Google Sheets Sync · Time Fix</div>
+      <div class="sub">Version 2.2 · Google Sheets Sync · Timezone Fix</div>
     </div>
     <div class="tabs">
       <span class="status"><span id="statusDot" class="dot"></span><span id="syncStatus">Loading...</span></span>
@@ -145,6 +145,10 @@ function normalizeTimeValue(t){
   const s = String(t).trim();
   const hm = s.match(/(\d{1,2}):(\d{2})/);
   if(hm) return pad(Number(hm[1])) + ':' + pad(Number(hm[2]));
+  if(s.includes('T') && s.endsWith('Z')){
+    const iso = s.match(/T(\d{2}):(\d{2})/);
+    if(iso) return iso[1] + ':' + iso[2];
+  }
   const d = new Date(s);
   if(!isNaN(d.getTime())) return pad(d.getHours()) + ':' + pad(d.getMinutes());
   return s;
