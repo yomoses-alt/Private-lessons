@@ -1,6 +1,5 @@
-# Private Lessons - Google Sheets Sync v3.4
+# Private Lessons - Google Sheets Sync v3.5
 
-Mobile display fix:
-- forces the weekly mobile table to show on phone
-- hides old mobile list
-- desktop calendar unchanged
+Mobile weekly view:
+- lessons and blocked times appear as one unified card
+- no duplicated/split cards across multiple hour rows

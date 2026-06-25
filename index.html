@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Private Lessons - Hemda Moses v3.4</title>
+<title>Private Lessons - Hemda Moses v3.5</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -107,10 +107,10 @@ small,.badge{color:var(--muted);font-weight:600}
 .mobile-pill{
   display:block;
   border-radius:8px;
-  padding:4px 5px;
+  padding:5px 5px;
   margin:2px 0;
-  font-size:10.5px;
-  line-height:1.15;
+  font-size:10.8px;
+  line-height:1.2;
   font-weight:700;
   background:linear-gradient(135deg,#fff,#f7f4ff);
   border:1px solid #d7cdfc;
@@ -155,7 +155,7 @@ small,.badge{color:var(--muted);font-weight:600}
   <div class="header-row">
     <div>
       <h1>Private Lessons - Hemda Moses</h1>
-      <div class="sub">Version 3.4 · Mobile Display Fix</div>
+      <div class="sub">Version 3.5 · Mobile Unified Cards</div>
     </div>
     <div class="tabs">
       <span class="status"><span id="statusDot" class="dot"></span><span id="syncStatus">Loading...</span></span>
@@ -440,7 +440,7 @@ function renderMobileWeekSimple(){
   for(let hour=480; hour<1080; hour+=60){
     html += `<tr><td class="time-col">${fromMin(hour)}</td>`;
     days.forEach(day=>{
-      const events=dayEvents(day).filter(ev=>ev.start < hour+60 && ev.end > hour);
+      const events=dayEvents(day).filter(ev=>ev.start >= hour && ev.start < hour+60);
       html += '<td class="day-cell">';
       events.forEach(ev=>{
         html += `<span class="mobile-pill ${ev.type}">${escapeHtml(ev.name)}<br>${fromMin(ev.start)}–${fromMin(ev.end)}</span>`;
