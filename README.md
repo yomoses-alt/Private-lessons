@@ -1,7 +1,6 @@
-# Private Lessons - Google Sheets Sync v3.2
+# Private Lessons - Google Sheets Sync v3.3
 
-Fixes mobile weekly view:
-- reliable horizontal weekly grid
-- hours on left
-- all days as columns
-- no day-by-day list on mobile
+Simple mobile weekly table:
+- phone shows all week in a horizontal-scroll table
+- no complex positioning
+- desktop calendar unchanged

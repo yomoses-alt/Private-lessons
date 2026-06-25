@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Private Lessons - Hemda Moses v3.2</title>
+<title>Private Lessons - Hemda Moses v3.3</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -54,7 +54,7 @@ small,.badge{color:var(--muted);font-weight:600}
 .empty{padding:12px;color:var(--muted);font-weight:700;text-align:center}
 @media(max-width:900px){
   main{padding:12px}.grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}
-  .desktop-schedule{display:none}.mobile-list{display:none}.mobile-week-view{display:block}
+  .desktop-schedule{display:none}.mobile-list{display:none}.mobile-week-simple{display:block}
   h1{font-size:21px}
 }
 
@@ -63,72 +63,61 @@ small,.badge{color:var(--muted);font-weight:600}
 .time-slot{height:46px;border-bottom:1px solid var(--line);font-size:12px;text-align:center;color:var(--muted);font-weight:700;padding-top:4px}
 
 
-.mobile-week-view{display:none}
-.mobile-week-scroll{
+.mobile-week-simple{display:none}
+.mobile-week-table-wrap{
   overflow-x:auto;
   -webkit-overflow-scrolling:touch;
-  padding-bottom:10px;
-}
-.mobile-week-grid{
-  display:grid;
-  grid-template-columns:44px repeat(6,96px);
-  width:max-content;
-  min-width:620px;
   background:#fff;
   border:1px solid var(--line);
   border-radius:16px;
-  overflow:hidden;
   box-shadow:0 8px 22px rgba(75,54,140,.08);
 }
-.mobile-week-head{
-  background:#fbfaff;
-  border-right:1px solid var(--line);
-  border-bottom:1px solid var(--line);
-  padding:8px 3px;
-  text-align:center;
-  font-size:11px;
-  font-weight:800;
-  color:#4d3f83;
-}
-.mobile-week-time{
-  background:#fbfaff;
-  border-right:1px solid var(--line);
-  border-bottom:1px solid var(--line);
-  height:42px;
-  font-size:10px;
-  color:var(--muted);
-  text-align:center;
-  padding-top:5px;
-  font-weight:800;
-}
-.mobile-week-cell{
-  position:relative;
-  height:42px;
-  border-right:1px solid var(--line);
-  border-bottom:1px solid var(--line);
+.mobile-week-table{
+  border-collapse:collapse;
+  width:100%;
+  min-width:720px;
   background:#fff;
-  overflow:visible;
 }
-.mobile-week-cell.closed{background:#f4f1fb}
-.mobile-week-event{
-  position:absolute;
-  left:2px;
-  right:2px;
-  top:2px;
-  min-height:14px;
-  border-radius:7px;
-  padding:2px 3px;
-  font-size:9.5px;
-  line-height:1.05;
-  overflow:hidden;
+.mobile-week-table th,
+.mobile-week-table td{
+  border:1px solid var(--line);
+  vertical-align:top;
+  padding:6px;
+}
+.mobile-week-table th{
+  background:#fbfaff;
+  font-size:12px;
+  color:#4d3f83;
+  text-align:center;
+  font-weight:800;
+}
+.mobile-week-table td.time-col{
+  width:48px;
+  background:#fbfaff;
+  color:var(--muted);
+  font-size:11px;
+  text-align:center;
+  font-weight:800;
+}
+.mobile-week-table td.day-cell{
+  width:112px;
+  min-height:42px;
+  height:42px;
+}
+.mobile-pill{
+  display:block;
+  border-radius:8px;
+  padding:4px 5px;
+  margin:2px 0;
+  font-size:10.5px;
+  line-height:1.15;
+  font-weight:700;
   background:linear-gradient(135deg,#fff,#f7f4ff);
   border:1px solid #d7cdfc;
   border-left:4px solid var(--purple);
-  z-index:4;
   color:var(--text);
-  font-weight:700;
 }
-.mobile-week-event.blocked{
+.mobile-pill.blocked{
   background:#eeeaf7;
   border-color:#d6d0e6;
   border-left-color:#9d96b8;
@@ -148,7 +137,7 @@ small,.badge{color:var(--muted);font-weight:600}
   <div class="header-row">
     <div>
       <h1>Private Lessons - Hemda Moses</h1>
-      <div class="sub">Version 3.2 · Mobile Weekly View Fix</div>
+      <div class="sub">Version 3.3 · Simple Mobile Weekly View</div>
     </div>
     <div class="tabs">
       <span class="status"><span id="statusDot" class="dot"></span><span id="syncStatus">Loading...</span></span>
@@ -203,7 +192,7 @@ small,.badge{color:var(--muted);font-weight:600}
   <div class="schedule-wrap desktop-schedule">
     <div id="calendar" class="schedule"></div>
   </div>
-  <div class="mobile-week-view"><div class="mobile-week-note">Swipe sideways to see the full week</div><div class="mobile-week-scroll"><div id="mobileWeekGrid" class="mobile-week-grid"></div></div></div>
+  <div class="mobile-week-simple"><div class="mobile-week-note">Swipe sideways to see the full week</div><div class="mobile-week-table-wrap"><table id="mobileWeekSimple" class="mobile-week-table"></table></div></div>
   <div id="mobileSchedule" class="mobile-list"></div>
 </section>
 </main>
@@ -422,53 +411,28 @@ function renderCalendar(){
   });
 
   cal.appendChild(body);
-  renderMobileWeek();
+  renderMobileWeekSimple();
   renderMobileSchedule();
 }
 
-function renderMobileWeek(){
-  const grid=document.getElementById('mobileWeekGrid');
-  if(!grid) return;
-  const hours=[];
-  for(let m=480;m<1080;m+=60) hours.push(m);
-  grid.innerHTML='';
-  const blank=document.createElement('div');
-  blank.className='mobile-week-head';
-  grid.appendChild(blank);
-  days.forEach(d=>{
-    const h=document.createElement('div');
-    h.className='mobile-week-head';
-    h.textContent=d.name.slice(0,3);
-    grid.appendChild(h);
-  });
-  hours.forEach(hour=>{
-    const time=document.createElement('div');
-    time.className='mobile-week-time';
-    time.textContent=fromMin(hour);
-    grid.appendChild(time);
-
+function renderMobileWeekSimple(){
+  const table=document.getElementById('mobileWeekSimple');
+  if(!table) return;
+  let html='<thead><tr><th>Time</th>'+days.map(d=>`<th>${d.name}</th>`).join('')+'</tr></thead><tbody>';
+  for(let hour=480; hour<1080; hour+=60){
+    html += `<tr><td class="time-col">${fromMin(hour)}</td>`;
     days.forEach(day=>{
-      const cell=document.createElement('div');
-      cell.className='mobile-week-cell';
-      if(hour>=toMin(day.end)) cell.classList.add('closed');
-
-      const slotStart=hour;
-      const slotEnd=hour+60;
-      dayEvents(day).forEach(ev=>{
-        if(ev.start < slotEnd && ev.end > slotStart){
-          const clippedStart=Math.max(ev.start,slotStart);
-          const clippedEnd=Math.min(ev.end,slotEnd);
-          const div=document.createElement('div');
-          div.className='mobile-week-event '+ev.type;
-          div.style.top=((clippedStart-slotStart)/60*42+2)+'px';
-          div.style.height=Math.max(14,((clippedEnd-clippedStart)/60*42)-4)+'px';
-          div.innerHTML=escapeHtml(ev.name)+'<br>'+fromMin(ev.start)+'–'+fromMin(ev.end);
-          cell.appendChild(div);
-        }
+      const events=dayEvents(day).filter(ev=>ev.start < hour+60 && ev.end > hour);
+      html += '<td class="day-cell">';
+      events.forEach(ev=>{
+        html += `<span class="mobile-pill ${ev.type}">${escapeHtml(ev.name)}<br>${fromMin(ev.start)}–${fromMin(ev.end)}</span>`;
       });
-      grid.appendChild(cell);
+      html += '</td>';
     });
-  });
+    html += '</tr>';
+  }
+  html += '</tbody>';
+  table.innerHTML=html;
 }
 
 function renderMobileSchedule(){
