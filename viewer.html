@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Private Lessons - Hemda Moses v3.0</title>
+<title>Private Lessons - Hemda Moses v3.1</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -54,13 +54,83 @@ small,.badge{color:var(--muted);font-weight:600}
 .empty{padding:12px;color:var(--muted);font-weight:700;text-align:center}
 @media(max-width:900px){
   main{padding:12px}.grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}
-  .desktop-schedule{display:none}.mobile-list{display:block}
+  .desktop-schedule{display:none}.mobile-list{display:none}.mobile-week-view{display:block;overflow-x:auto;padding-bottom:8px}
   h1{font-size:21px}
 }
 
 .schedule-body{display:grid;grid-template-columns:58px repeat(6,minmax(130px,1fr));min-width:850px}
 .time-scale{background:#fbfaff;border-right:1px solid var(--line)}
 .time-slot{height:46px;border-bottom:1px solid var(--line);font-size:12px;text-align:center;color:var(--muted);font-weight:700;padding-top:4px}
+
+
+.mobile-week-view{display:none}
+.mobile-week-grid{
+  display:grid;
+  grid-template-columns:42px repeat(6,92px);
+  min-width:594px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  overflow:hidden;
+  background:#fff;
+  box-shadow:0 8px 22px rgba(75,54,140,.08);
+}
+.mobile-week-head{
+  position:sticky;
+  top:0;
+  z-index:2;
+  background:#fbfaff;
+  border-right:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  padding:7px 4px;
+  text-align:center;
+  font-size:11px;
+  font-weight:800;
+}
+.mobile-week-time{
+  background:#fbfaff;
+  border-right:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  height:42px;
+  font-size:10px;
+  color:var(--muted);
+  text-align:center;
+  padding-top:4px;
+  font-weight:800;
+}
+.mobile-week-cell{
+  position:relative;
+  height:42px;
+  border-right:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  background:#fff;
+}
+.mobile-week-event{
+  position:absolute;
+  left:2px;
+  right:2px;
+  top:2px;
+  border-radius:7px;
+  padding:2px 3px;
+  font-size:9.5px;
+  line-height:1.05;
+  overflow:hidden;
+  background:linear-gradient(135deg,#fff,#f7f4ff);
+  border:1px solid #d7cdfc;
+  border-left:4px solid var(--purple);
+  z-index:3;
+}
+.mobile-week-event.blocked{
+  background:#eeeaf7;
+  border-color:#d6d0e6;
+  border-left-color:#9d96b8;
+}
+.mobile-scroll-note{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:700;
+  text-align:center;
+  margin:0 0 8px;
+}
 
 </style>
 </head>
@@ -69,7 +139,7 @@ small,.badge{color:var(--muted);font-weight:600}
   <div class="header-row">
     <div>
       <h1>Private Lessons - Hemda Moses</h1>
-      <div class="sub">Version 3.0 · Stable Google Sheets Sync</div>
+      <div class="sub">Version 3.1 · Mobile Weekly View</div>
     </div>
     <div class="tabs">
       <span class="status"><span id="statusDot" class="dot"></span><span id="syncStatus">Loading...</span></span>
@@ -124,6 +194,7 @@ small,.badge{color:var(--muted);font-weight:600}
   <div class="schedule-wrap desktop-schedule">
     <div id="calendar" class="schedule"></div>
   </div>
+  <div class="mobile-week-view"><div class="mobile-scroll-note">Swipe sideways to see the full week</div><div id="mobileWeekGrid" class="mobile-week-grid"></div></div>
   <div id="mobileSchedule" class="mobile-list"></div>
 </section>
 </main>
@@ -342,8 +413,39 @@ function renderCalendar(){
   });
 
   cal.appendChild(body);
+  renderMobileWeek();
   renderMobileSchedule();
 }
+
+function renderMobileWeek(){
+  const grid=document.getElementById('mobileWeekGrid');
+  if(!grid) return;
+  grid.innerHTML='<div class="mobile-week-head"></div>'+days.map(d=>`<div class="mobile-week-head">${d.name.slice(0,3)}</div>`).join('');
+  for(let m=480;m<1080;m+=60){
+    grid.innerHTML += `<div class="mobile-week-time">${fromMin(m)}</div>`;
+    days.forEach(day=>{
+      const cell=document.createElement('div');
+      cell.className='mobile-week-cell';
+      if(m>=toMin(day.end)) cell.style.background='#f4f1fb';
+      dayEvents(day).forEach(ev=>{
+        const evStart=ev.start, evEnd=ev.end;
+        const slotStart=m, slotEnd=m+60;
+        if(evStart < slotEnd && evEnd > slotStart){
+          const clippedStart=Math.max(evStart,slotStart);
+          const clippedEnd=Math.min(evEnd,slotEnd);
+          const div=document.createElement('div');
+          div.className='mobile-week-event '+ev.type;
+          div.style.top=((clippedStart-slotStart)/60*42 + 2)+'px';
+          div.style.height=Math.max(14,((clippedEnd-clippedStart)/60*42)-3)+'px';
+          div.innerHTML=`${escapeHtml(ev.name)}<br>${fromMin(ev.start)}–${fromMin(ev.end)}`;
+          cell.appendChild(div);
+        }
+      });
+      grid.appendChild(cell);
+    });
+  }
+}
+
 function renderMobileSchedule(){
   const root=document.getElementById('mobileSchedule');root.innerHTML='';
   days.forEach(day=>{const events=dayEvents(day);const card=document.createElement('div');card.className='card';card.style.marginBottom='12px';card.innerHTML=`<h2>${day.name}</h2>`;if(!events.length)card.innerHTML+='<div class="empty">No lessons or blocked times</div>';events.forEach(ev=>{const div=document.createElement('div');div.className='item';div.innerHTML=`<div><b>${escapeHtml(ev.name)}</b><br><small>${fromMin(ev.start)}–${fromMin(ev.end)} · ${ev.duration} min</small></div>`;card.appendChild(div)});root.appendChild(card)});

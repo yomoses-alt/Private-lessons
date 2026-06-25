@@ -1,7 +1,6 @@
-# Private Lessons - Google Sheets Sync v3.0
+# Private Lessons - Google Sheets Sync v3.1
 
-Stability release:
-- Auto refresh every 30 seconds
-- Better saving status
-- Conflict prevention against blocked times
-- Calendar/day/time normalization from v2.3
+Adds mobile weekly view:
+- Full week visible in horizontal scroll on phone
+- Compact day columns
+- Still synced with Google Sheets
