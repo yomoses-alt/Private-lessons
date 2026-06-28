@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Private Lessons - Hemda Moses v3.8</title>
+<title>Private Lessons - Hemda Moses v5.0</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -283,6 +283,51 @@ small,.badge{color:var(--muted);font-weight:600}
   }
 }
 
+
+/* v4.0 monthly payment tracking */
+.payments-toolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:14px}
+.payments-toolbar>div{min-width:160px}
+.payments-summary{display:grid;grid-template-columns:repeat(3,minmax(140px,1fr));gap:12px;margin-bottom:14px}
+.summary-box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:13px;box-shadow:0 6px 16px rgba(75,54,140,.07)}
+.summary-box .label{font-size:12px;color:var(--muted);font-weight:800}
+.summary-box .value{font-size:22px;font-weight:800;color:var(--purple);margin-top:2px}
+.payments-table-wrap{overflow:auto;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 22px rgba(75,54,140,.08)}
+.payments-table{width:100%;min-width:980px;border-collapse:collapse}
+.payments-table th,.payments-table td{border-bottom:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top;font-size:13px}
+.payments-table th{position:sticky;top:0;background:#fbfaff;color:#4d3f83;font-weight:800;z-index:2}
+.payments-table tr.family-row td{background:#f4f1ff;color:#4d3f83;font-weight:800;font-size:15px}
+.money{font-weight:800;color:#4f42b5;white-space:nowrap}.hebrew{direction:rtl;text-align:right}
+@media(max-width:900px){.payments-summary{grid-template-columns:1fr}.payments-table{min-width:920px}}
+
+
+/* v4.1 monthly tracking editor */
+.tracking-form-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(140px,1fr));
+  gap:10px;
+  margin-bottom:12px;
+}
+.tracking-list{
+  margin-top:14px;
+}
+.tracking-student-card{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:center;
+  background:#fbfaff;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:10px;
+  margin:8px 0;
+}
+.tracking-student-card b{font-size:15px}
+.tracking-student-card small{display:block;margin-top:3px}
+@media(max-width:900px){
+  .tracking-form-grid{grid-template-columns:1fr}
+  .tracking-student-card{align-items:flex-start;flex-direction:column}
+}
+
 </style>
 </head>
 <body>
@@ -290,12 +335,13 @@ small,.badge{color:var(--muted);font-weight:600}
   <div class="header-row">
     <div>
       <h1>Private Lessons - Hemda Moses</h1>
-      <div class="sub">Version 3.8 · Real Mobile Calendar</div>
+      <div class="sub">Version 5.0 · Unified Student Database</div>
     </div>
     <div class="tabs">
       <span class="status"><span id="statusDot" class="dot"></span><span id="syncStatus">Loading...</span></span>
       <button class="secondary" onclick="showScreen('settings')">Settings</button>
       <button class="secondary" onclick="showScreen('schedule')">Weekly Schedule</button>
+      <button class="secondary" onclick="showScreen('payments')">Monthly Tracking</button>
       <button class="secondary" onclick="loadFromSheets()">Refresh</button>
     </div>
   </div>
@@ -308,9 +354,14 @@ small,.badge{color:var(--muted);font-weight:600}
       <h2 id="studentFormTitle">Add Student</h2>
       <input type="hidden" id="editingStudentId">
       <div class="row">
-        <div><label>First Name</label><input id="studentFirstName" placeholder="Maya"></div>
-        <div><label>Last Name</label><input id="studentLastName" placeholder="Cohen"></div>
-        <div><label>Lesson Duration</label><input id="lessonDuration" type="number" min="15" step="15" value="45"></div>
+        <div><label>Student Name</label><input id="studentFirstName" autocomplete="off"></div>
+        <div><label>Family Name</label><input id="studentLastName" autocomplete="off"></div>
+        <div><label>Parent Name</label><input id="parentName" autocomplete="off"></div>
+        <div><label>Heb Student Name</label><input id="hebStudentName" class="hebrew" autocomplete="off"></div>
+        <div><label>Heb Family Name</label><input id="hebFamilyName" class="hebrew" autocomplete="off"></div>
+        <div><label>Heb Parent Name</label><input id="hebParentName" class="hebrew" autocomplete="off"></div>
+        <div><label>Lesson Duration</label><input id="lessonDuration" type="number" min="15" step="15" value="45" autocomplete="off"></div>
+        <div><label>Rate Per Lesson</label><input id="ratePerLesson" type="number" min="0" step="1" autocomplete="off"></div>
       </div>
       <h3>Recurring Lessons</h3>
       <div id="lessonTimes"></div>
@@ -349,6 +400,37 @@ small,.badge{color:var(--muted);font-weight:600}
   <div class="mobile-real-calendar"><div class="mobile-real-note">Swipe sideways to see the full week</div><div class="mobile-real-scroll"><div id="mobileRealGrid" class="mobile-real-grid"></div></div></div>
   <div id="mobileSchedule" class="mobile-list"></div>
 </section>
+
+
+
+<section id="payments" class="screen">
+  <div class="card">
+    <h2>Monthly Tracking</h2>
+    <div class="payments-toolbar">
+      <div><label>Month</label><input id="trackingMonth" type="month" autocomplete="off"></div>
+      <div><label>Expected lessons per month</label><input id="expectedLessonsPerMonth" type="number" min="0" step="1" value="4" autocomplete="off"></div>
+      <button onclick="renderPayments()">Refresh Tracking</button>
+    </div>
+    <div class="payments-summary">
+      <div class="summary-box"><div class="label">Lessons taught this month</div><div id="sumLessons" class="value">0</div></div>
+      <div class="summary-box"><div class="label">Money earned so far</div><div id="sumEarned" class="value">₪0</div></div>
+      <div class="summary-box"><div class="label">Estimated month total</div><div id="sumEstimated" class="value">₪0</div></div>
+    </div>
+    <div class="payments-table-wrap">
+      <table class="payments-table">
+        <thead><tr>
+          <th>Family Name</th><th>Parent</th><th>Student Name</th>
+          <th>Heb Family</th><th>Heb Parent</th><th>Heb Student</th>
+          <th>Lessons This Month</th><th>Money Earned</th><th>Estimated Month</th>
+        </tr></thead>
+        <tbody id="paymentsBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+
+
 </main>
 
 <script>
@@ -361,7 +443,7 @@ const days=[
   {id:'thu',name:'Thursday',start:'08:00',end:'18:00'},
   {id:'fri',name:'Friday',start:'08:00',end:'15:00'}
 ];
-let students=[];let blockedTimes=[];
+let students=[];let blockedTimes=[];let lessonLog=[];
 
 function uid(){return Math.random().toString(36).slice(2,9)}
 function normalizeTimeValue(t){
@@ -400,17 +482,18 @@ function normalizeDay(day){
 
 function escapeHtml(str){return String(str??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[s]))}
 function setStatus(text,type='warn'){document.getElementById('syncStatus').textContent=text;const d=document.getElementById('statusDot');d.className='dot '+(type==='ok'?'ok':type==='bad'?'bad':'')}
-function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');if(id==='schedule')renderCalendar()}
-function normalizeStudent(s){s={...s};if(!s.id&&s.ID)s.id=s.ID;if(!s.firstName&&s.FirstName)s.firstName=s.FirstName;if(!s.lastName&&s.LastName)s.lastName=s.LastName;if(!s.duration&&s.Duration)s.duration=Number(s.Duration);if(!s.firstName&&s.name){const p=String(s.name).trim().split(/\s+/);s.firstName=p.shift()||'';s.lastName=p.join(' ')}s.duration=Number(s.duration||45);s.name=[s.firstName||'',s.lastName||''].filter(Boolean).join(' ').trim();s.lessons=s.lessons||[];return s}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');if(id==='schedule')renderCalendar();if(id==='payments')renderPayments()}
+function normalizeStudent(s){s={...s};if(!s.id&&s.ID)s.id=s.ID;if(!s.firstName&&s.FirstName)s.firstName=s.FirstName;if(!s.lastName&&s.LastName)s.lastName=s.LastName;if(!s.parentName&&s.ParentName)s.parentName=s.ParentName;if(!s.hebFirstName&&s.HebStudentName)s.hebFirstName=s.HebStudentName;if(!s.hebLastName&&s.HebFamilyName)s.hebLastName=s.HebFamilyName;if(!s.hebParentName&&s.HebParentName)s.hebParentName=s.HebParentName;if(!s.ratePerLesson&&s.RatePerLesson)s.ratePerLesson=Number(s.RatePerLesson);if(!s.duration&&s.Duration)s.duration=Number(s.Duration);if(!s.firstName&&s.name){const p=String(s.name).trim().split(/\s+/);s.firstName=p.shift()||'';s.lastName=p.join(' ')}s.duration=Number(s.duration||45);s.ratePerLesson=Number(s.ratePerLesson||0);s.parentName=s.parentName||'';s.hebFirstName=s.hebFirstName||'';s.hebLastName=s.hebLastName||'';s.hebParentName=s.hebParentName||'';s.name=[s.firstName||'',s.lastName||''].filter(Boolean).join(' ').trim();s.lessons=s.lessons||[];return s}
 function studentDisplayName(s){s=normalizeStudent(s);return [s.firstName||'',s.lastName||''].filter(Boolean).join(' ').trim()||'Student'}
 function sortedStudents(){return [...students].map(normalizeStudent).sort((a,b)=>{let x=String(a.firstName||'').localeCompare(String(b.firstName||''),['he','en'],{sensitivity:'base'});if(x)return x;return String(a.lastName||'').localeCompare(String(b.lastName||''),['he','en'],{sensitivity:'base'})})}
 
 function flattenForSheets(){
-  const sheetStudents=students.map(s=>({ID:s.id,FirstName:s.firstName||'',LastName:s.lastName||'',Duration:s.duration||45}));
+  const sheetStudents=students.map(s=>({ID:s.id,FirstName:s.firstName||'',LastName:s.lastName||'',ParentName:s.parentName||'',HebStudentName:s.hebFirstName||'',HebFamilyName:s.hebLastName||'',HebParentName:s.hebParentName||'',Duration:s.duration||45,RatePerLesson:s.ratePerLesson||0}));
   const lessons=[];
   students.forEach(s=>(s.lessons||[]).forEach(l=>lessons.push({StudentID:s.id,Day:normalizeDay(l.day),StartTime:normalizeTimeValue(l.start)})));
   const blocked=blockedTimes.map(b=>({ID:b.id||uid(),Day:normalizeDay(b.day),Start:normalizeTimeValue(b.start),End:normalizeTimeValue(b.end)}));
-  return {students:sheetStudents,lessons,blockedTimes:blocked};
+  const log=lessonLog.map(l=>({ID:l.id||'',StudentID:l.studentId||'',StudentName:l.studentName||'',Date:l.rawDate||formatDateForSheet(l.date)}));
+  return {students:sheetStudents,lessons,blockedTimes:blocked,lessonLog:log};
 }
 function buildFromSheets(data){
   const map={};
@@ -424,6 +507,7 @@ function buildFromSheets(data){
   });
   students=Object.values(map);
   blockedTimes=(data.blockedTimes||[]).map(r=>({id:r.ID||uid(),day:normalizeDay(r.Day),start:normalizeTimeValue(r.Start),end:normalizeTimeValue(r.End)}));
+  lessonLog=(data.lessonLog||[]).map(normalizeLessonLogRow);
 }
 
 async function loadFromSheets(){
@@ -450,7 +534,216 @@ async function saveToSheets(){
   }
 }
 
-function renderAll(){renderStudents();renderBlocked();renderCalendar()}
+function renderAll(){renderStudents();renderBlocked();renderCalendar();renderPayments()}
+
+function normalizeTrackingStudent(r){
+  return {
+    id:String(r.ID||r.StudentID||'').trim(),
+    familyName:String(r.FamilyName||'').trim(),
+    parentName:String(r.Parent||r.ParentName||'').trim(),
+    studentName:String(r.StudentName||'').trim(),
+    hebFamilyName:String(r.HebFamilyName||'').trim(),
+    hebParentName:String(r.HebParentName||'').trim(),
+    hebStudentName:String(r.HebStudentName||'').trim(),
+    rate:Number(String(r.RatePerLesson||r.Rate||0).replace(/[^\d.]/g,''))||0
+  };
+}
+function parseLessonDate(value){
+  if(!value) return null;
+  const s=String(value).trim();
+  let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if(m) return new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));
+  m=s.match(/^(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})$/);
+  if(m) return new Date(Number(m[3]),Number(m[2])-1,Number(m[1]));
+  const d=new Date(s);
+  return isNaN(d.getTime())?null:d;
+}
+function normalizeLessonLogRow(r){
+  const raw=r.Date||r.LessonDate||'';return {id:String(r.ID||'').trim(),studentId:String(r.StudentID||'').trim(),studentName:String(r.StudentName||'').trim(),rawDate:raw,date:parseLessonDate(raw)};
+}
+function currentMonthValue(){
+  const el=document.getElementById('trackingMonth');
+  if(!el) return '';
+  if(!el.value){const n=new Date();el.value=n.getFullYear()+'-'+pad(n.getMonth()+1)}
+  return el.value;
+}
+function sameMonth(date,monthValue){
+  if(!date||!monthValue) return false;
+  const [y,m]=monthValue.split('-').map(Number);
+  return date.getFullYear()===y && date.getMonth()===(m-1);
+}
+function countLessonsForStudent(s,monthValue){
+  return lessonLog.filter(l=>{
+    if(!sameMonth(l.date,monthValue)) return false;
+    if(s.id&&l.studentId&&s.id===l.studentId) return true;
+    return String(l.studentName||'').trim().toLowerCase()===String(s.studentName||'').trim().toLowerCase();
+  }).length;
+}
+function formatMoney(n){return '₪'+Math.round(Number(n||0)).toLocaleString('he-IL')}
+function formatDateForSheet(d){if(!d)return '';return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function sortedTrackingStudents(){
+  return [...trackingStudents].sort((a,b)=>{
+    const f=String(a.familyName||'').localeCompare(String(b.familyName||''),['en','he'],{sensitivity:'base'});
+    if(f) return f;
+    return String(a.studentName||'').localeCompare(String(b.studentName||''),['en','he'],{sensitivity:'base'});
+  });
+}
+
+function resetTrackingForm(){
+  const ids=['editingTrackingStudentId','trackFamilyName','trackParentName','trackStudentName','trackHebFamilyName','trackHebParentName','trackHebStudentName','trackRate'];
+  ids.forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  const title=document.getElementById('trackingFormTitle');
+  if(title) title.textContent='Add Tracking Student';
+}
+async function saveTrackingStudent(){
+  const id=document.getElementById('editingTrackingStudentId').value || uid();
+  const familyName=document.getElementById('trackFamilyName').value.trim();
+  const parentName=document.getElementById('trackParentName').value.trim();
+  const studentName=document.getElementById('trackStudentName').value.trim();
+  const rate=Number(document.getElementById('trackRate').value||0);
+  if(!familyName || !studentName){
+    alert('Please enter at least family name and student name.');
+    return;
+  }
+  const obj={
+    id,familyName,parentName,studentName,rate,
+    hebFamilyName:document.getElementById('trackHebFamilyName').value.trim(),
+    hebParentName:document.getElementById('trackHebParentName').value.trim(),
+    hebStudentName:document.getElementById('trackHebStudentName').value.trim()
+  };
+  const i=trackingStudents.findIndex(s=>s.id===id);
+  if(i>=0) trackingStudents[i]=obj; else trackingStudents.push(obj);
+  resetTrackingForm();
+  renderTrackingStudentList();
+  renderPayments();
+  await saveToSheets();
+}
+function editTrackingStudent(id){
+  const s=trackingStudents.find(x=>x.id===id);
+  if(!s) return;
+  document.getElementById('trackingFormTitle').textContent='Edit Tracking Student';
+  document.getElementById('editingTrackingStudentId').value=s.id;
+  document.getElementById('trackFamilyName').value=s.familyName||'';
+  document.getElementById('trackParentName').value=s.parentName||'';
+  document.getElementById('trackStudentName').value=s.studentName||'';
+  document.getElementById('trackHebFamilyName').value=s.hebFamilyName||'';
+  document.getElementById('trackHebParentName').value=s.hebParentName||'';
+  document.getElementById('trackHebStudentName').value=s.hebStudentName||'';
+  document.getElementById('trackRate').value=s.rate||0;
+}
+async function deleteTrackingStudent(id){
+  if(!confirm('Delete tracking student?')) return;
+  trackingStudents=trackingStudents.filter(s=>s.id!==id);
+  renderTrackingStudentList();
+  renderPayments();
+  await saveToSheets();
+}
+function renderTrackingStudentList(){
+  const el=document.getElementById('trackingStudentList');
+  if(!el) return;
+  el.innerHTML='';
+  const rows=sortedTrackingStudents();
+  if(!rows.length){
+    el.innerHTML='<div class="empty">No tracking students yet</div>';
+    return;
+  }
+  rows.forEach(s=>{
+    const card=document.createElement('div');
+    card.className='tracking-student-card';
+    card.innerHTML=`<div><b>${escapeHtml(s.familyName)} · ${escapeHtml(s.studentName)}</b><small>${escapeHtml(s.parentName)} · Rate: ${formatMoney(s.rate)}</small><small class="hebrew">${escapeHtml(s.hebFamilyName)} · ${escapeHtml(s.hebStudentName)}</small></div><div class="actions"><button class="secondary" onclick="editTrackingStudent('${s.id}')">Edit</button><button class="danger" onclick="deleteTrackingStudent('${s.id}')">Delete</button></div>`;
+    el.appendChild(card);
+  });
+}
+
+function renderPayments(){
+  const body=document.getElementById('paymentsBody');
+  if(!body) return;
+  const monthValue=currentMonthValue();
+  const expected=Number(document.getElementById('expectedLessonsPerMonth')?.value||4);
+  body.innerHTML='';
+  let totalLessons=0,totalEarned=0,totalEstimated=0,lastFamily=null;
+  const rows=sortedTrackingStudents();
+  if(!rows.length){
+    body.innerHTML='<tr><td colspan="9" class="empty">No tracking students found. Add rows in the TrackingStudents sheet.</td></tr>';
+    document.getElementById('sumLessons').textContent='0';
+    document.getElementById('sumEarned').textContent=formatMoney(0);
+    document.getElementById('sumEstimated').textContent=formatMoney(0);
+    return;
+  }
+  rows.forEach(s=>{
+    if(s.familyName!==lastFamily){
+      lastFamily=s.familyName;
+      const group=document.createElement('tr');
+      group.className='family-row';
+      group.innerHTML=`<td colspan="9">${escapeHtml(s.familyName||'No family name')}</td>`;
+      body.appendChild(group);
+    }
+    const lessons=countLessonsForStudent(s,monthValue);
+    const earned=lessons*s.rate;
+    const estimated=expected*s.rate;
+    totalLessons+=lessons; totalEarned+=earned; totalEstimated+=estimated;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${escapeHtml(s.familyName)}</td><td>${escapeHtml(s.parentName)}</td><td>${escapeHtml(s.studentName)}</td><td class="hebrew">${escapeHtml(s.hebFamilyName)}</td><td class="hebrew">${escapeHtml(s.hebParentName)}</td><td class="hebrew">${escapeHtml(s.hebStudentName)}</td><td><b>${lessons}</b></td><td class="money">${formatMoney(earned)}</td><td class="money">${formatMoney(estimated)}</td>`;
+    body.appendChild(tr);
+  });
+  document.getElementById('sumLessons').textContent=String(totalLessons);
+  document.getElementById('sumEarned').textContent=formatMoney(totalEarned);
+  document.getElementById('sumEstimated').textContent=formatMoney(totalEstimated);
+}
+
+
+function unifiedPaymentStudents(){
+  return sortedStudents().map(s=>normalizeStudent(s)).sort((a,b)=>{
+    const f=String(a.lastName||'').localeCompare(String(b.lastName||''),['en','he'],{sensitivity:'base'});
+    if(f) return f;
+    return String(a.firstName||'').localeCompare(String(b.firstName||''),['en','he'],{sensitivity:'base'});
+  });
+}
+function countLessonsForStudent(s,monthValue){
+  return lessonLog.filter(l=>{
+    if(!sameMonth(l.date,monthValue)) return false;
+    if(s.id&&l.studentId&&s.id===l.studentId) return true;
+    const full=studentDisplayName(s).trim().toLowerCase();
+    return String(l.studentName||'').trim().toLowerCase()===full || String(l.studentName||'').trim().toLowerCase()===String(s.firstName||'').trim().toLowerCase();
+  }).length;
+}
+function renderPayments(){
+  const body=document.getElementById('paymentsBody');
+  if(!body) return;
+  const monthValue=currentMonthValue();
+  const expected=Number(document.getElementById('expectedLessonsPerMonth')?.value||4);
+  body.innerHTML='';
+  let totalLessons=0,totalEarned=0,totalEstimated=0,lastFamily=null;
+  const rows=unifiedPaymentStudents();
+  if(!rows.length){
+    body.innerHTML='<tr><td colspan="9" class="empty">No students found. Add students in Settings.</td></tr>';
+    document.getElementById('sumLessons').textContent='0';
+    document.getElementById('sumEarned').textContent=formatMoney(0);
+    document.getElementById('sumEstimated').textContent=formatMoney(0);
+    return;
+  }
+  rows.forEach(s=>{
+    if(s.lastName!==lastFamily){
+      lastFamily=s.lastName;
+      const group=document.createElement('tr');
+      group.className='family-row';
+      group.innerHTML=`<td colspan="9">${escapeHtml(s.lastName||'No family name')}</td>`;
+      body.appendChild(group);
+    }
+    const lessons=countLessonsForStudent(s,monthValue);
+    const rate=Number(s.ratePerLesson||0);
+    const earned=lessons*rate;
+    const estimated=expected*rate;
+    totalLessons+=lessons; totalEarned+=earned; totalEstimated+=estimated;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${escapeHtml(s.lastName||'')}</td><td>${escapeHtml(s.parentName||'')}</td><td>${escapeHtml(s.firstName||'')}</td><td class="hebrew">${escapeHtml(s.hebLastName||'')}</td><td class="hebrew">${escapeHtml(s.hebParentName||'')}</td><td class="hebrew">${escapeHtml(s.hebFirstName||'')}</td><td><b>${lessons}</b></td><td class="money">${formatMoney(earned)}</td><td class="money">${formatMoney(estimated)}</td>`;
+    body.appendChild(tr);
+  });
+  document.getElementById('sumLessons').textContent=String(totalLessons);
+  document.getElementById('sumEarned').textContent=formatMoney(totalEarned);
+  document.getElementById('sumEstimated').textContent=formatMoney(totalEstimated);
+}
+
 function populateDays(){
   ['blockedDay'].forEach(id=>{const el=document.getElementById(id);el.innerHTML=days.map(d=>`<option value="${d.id}">${d.name}</option>`).join('')});
 }
@@ -459,7 +752,7 @@ function addLessonTime(day='sun',start='16:00'){
   div.innerHTML=`<select class="lessonDay">${days.map(d=>`<option value="${d.id}" ${d.id===day?'selected':''}>${d.name}</option>`).join('')}</select><input class="lessonStart" type="time" value="${start}"><button class="danger" onclick="this.parentElement.remove()">Remove</button>`;
   document.getElementById('lessonTimes').appendChild(div);
 }
-function resetStudentForm(){document.getElementById('editingStudentId').value='';document.getElementById('studentFormTitle').textContent='Add Student';document.getElementById('studentFirstName').value='';document.getElementById('studentLastName').value='';document.getElementById('lessonDuration').value='45';document.getElementById('lessonTimes').innerHTML='';addLessonTime()}
+function resetStudentForm(){document.getElementById('editingStudentId').value='';document.getElementById('studentFormTitle').textContent='Add Student';['studentFirstName','studentLastName','parentName','hebStudentName','hebFamilyName','hebParentName','ratePerLesson'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});document.getElementById('lessonDuration').value='45';document.getElementById('lessonTimes').innerHTML='';addLessonTime()}
 function overlaps(a1,a2,b1,b2){return a1<b2 && b1<a2}
 function findLessonConflict(editId,lessons,duration){
   for(const lesson of lessons){
@@ -494,20 +787,20 @@ async function saveStudent(){
   const id=document.getElementById('editingStudentId').value||uid();
   const firstName=document.getElementById('studentFirstName').value.trim();
   const lastName=document.getElementById('studentLastName').value.trim();
-  const duration=Number(document.getElementById('lessonDuration').value);
+  const duration=Number(document.getElementById('lessonDuration').value);const parentName=document.getElementById('parentName').value.trim();const hebFirstName=document.getElementById('hebStudentName').value.trim();const hebLastName=document.getElementById('hebFamilyName').value.trim();const hebParentName=document.getElementById('hebParentName').value.trim();const ratePerLesson=Number(document.getElementById('ratePerLesson').value||0);
   if(!firstName||!duration){alert('Please enter first name and lesson duration.');return}
   const lessons=[...document.querySelectorAll('.lesson-line')].map(x=>({day:x.querySelector('.lessonDay').value,start:x.querySelector('.lessonStart').value})).filter(x=>x.start);
   const conflict=findLessonConflict(id,lessons,duration);
   if(conflict){alert(`Cannot add this lesson on ${dayName(conflict.day)} at ${conflict.start}–${conflict.end}.\nThis time is already booked by ${conflict.student} (${conflict.existingStart}–${conflict.existingEnd}).`);return}
   const blockedConflict=findBlockedConflict(lessons,duration);
   if(blockedConflict){alert(`Cannot add this lesson on ${dayName(blockedConflict.day)} at ${blockedConflict.start}–${blockedConflict.end}.\nThis time is blocked (${blockedConflict.blockedStart}–${blockedConflict.blockedEnd}).`);return}
-  const obj={id,firstName,lastName,duration,lessons};
+  const obj={id,firstName,lastName,parentName,hebFirstName,hebLastName,hebParentName,ratePerLesson,duration,lessons};
   const i=students.findIndex(s=>s.id===id);if(i>=0)students[i]=obj;else students.push(obj);
   renderAll();resetStudentForm();await saveToSheets();
 }
-function editStudent(id){const s=normalizeStudent(students.find(x=>x.id===id));if(!s)return;document.getElementById('editingStudentId').value=s.id;document.getElementById('studentFormTitle').textContent='Edit Student';document.getElementById('studentFirstName').value=s.firstName||'';document.getElementById('studentLastName').value=s.lastName||'';document.getElementById('lessonDuration').value=s.duration;document.getElementById('lessonTimes').innerHTML='';(s.lessons||[]).forEach(l=>addLessonTime(l.day,l.start));if(!s.lessons.length)addLessonTime();showScreen('settings')}
+function editStudent(id){const s=normalizeStudent(students.find(x=>x.id===id));if(!s)return;document.getElementById('editingStudentId').value=s.id;document.getElementById('studentFormTitle').textContent='Edit Student';document.getElementById('studentFirstName').value=s.firstName||'';document.getElementById('studentLastName').value=s.lastName||'';document.getElementById('parentName').value=s.parentName||'';document.getElementById('hebStudentName').value=s.hebFirstName||'';document.getElementById('hebFamilyName').value=s.hebLastName||'';document.getElementById('hebParentName').value=s.hebParentName||'';document.getElementById('ratePerLesson').value=s.ratePerLesson||0;document.getElementById('lessonDuration').value=s.duration;document.getElementById('lessonTimes').innerHTML='';(s.lessons||[]).forEach(l=>addLessonTime(l.day,l.start));if(!s.lessons.length)addLessonTime();showScreen('settings')}
 async function deleteStudent(id){if(!confirm('Delete student?'))return;students=students.filter(s=>s.id!==id);renderAll();await saveToSheets()}
-function renderStudents(){const el=document.getElementById('studentList');el.innerHTML='';if(!students.length){el.innerHTML='<div class="empty">No students yet</div>';return}sortedStudents().forEach(s=>{const d=document.createElement('div');d.className='item';d.innerHTML=`<div><b>${escapeHtml(studentDisplayName(s))}</b><br><small>${s.duration} minutes · ${s.lessons?.length||0} weekly lessons</small><br><span class="badge">${(s.lessons||[]).map(l=>dayName(l.day)+' '+l.start).join(' · ')||'No lessons'}</span></div><div class="actions"><button class="secondary" onclick="editStudent('${s.id}')">Edit</button><button class="danger" onclick="deleteStudent('${s.id}')">Delete</button></div>`;el.appendChild(d)})}
+function renderStudents(){const el=document.getElementById('studentList');el.innerHTML='';if(!students.length){el.innerHTML='<div class="empty">No students yet</div>';return}sortedStudents().forEach(s=>{const d=document.createElement('div');d.className='item';d.innerHTML=`<div><b>${escapeHtml(studentDisplayName(s))}</b><br><small>${s.duration} minutes · ${s.lessons?.length||0} weekly lessons · Parent: ${escapeHtml(s.parentName||'')} · Rate: ${formatMoney(s.ratePerLesson||0)}</small><br><small class="hebrew">${escapeHtml(s.hebLastName||'')} ${escapeHtml(s.hebFirstName||'')}</small><br><span class="badge">${(s.lessons||[]).map(l=>dayName(l.day)+' '+l.start).join(' · ')||'No lessons'}</span></div><div class="actions"><button class="secondary" onclick="editStudent('${s.id}')">Edit</button><button class="danger" onclick="deleteStudent('${s.id}')">Delete</button></div>`;el.appendChild(d)})}
 
 async function saveBlockedTime(){
   const b={id:uid(),day:document.getElementById('blockedDay').value,start:document.getElementById('blockedStart').value,end:document.getElementById('blockedEnd').value};
@@ -666,7 +959,8 @@ function renderMobileSchedule(){
   const root=document.getElementById('mobileSchedule');root.innerHTML='';
   days.forEach(day=>{const events=dayEvents(day);const card=document.createElement('div');card.className='card';card.style.marginBottom='12px';card.innerHTML=`<h2>${day.name}</h2>`;if(!events.length)card.innerHTML+='<div class="empty">No lessons or blocked times</div>';events.forEach(ev=>{const div=document.createElement('div');div.className='item';div.innerHTML=`<div><b>${escapeHtml(ev.name)}</b><br><small>${fromMin(ev.start)}–${fromMin(ev.end)} · ${ev.duration} min</small></div>`;card.appendChild(div)});root.appendChild(card)});
 }
-populateDays();resetStudentForm();loadFromSheets();
+document.querySelectorAll('input').forEach(i=>i.setAttribute('autocomplete','off'));
+populateDays();resetStudentForm();currentMonthValue();loadFromSheets();
 setInterval(()=>{if(!document.hidden)loadFromSheets()},30000);
 </script>
 </body>

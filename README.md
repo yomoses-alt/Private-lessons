@@ -1,8 +1,8 @@
-# Private Lessons - Google Sheets Sync v3.8
+# Private Lessons v5.0
 
-Real mobile calendar:
-- mobile weekly grid built with absolute positioning
-- events appear once
-- event height is proportional to duration
-- start position aligns to actual time
-- horizontal scroll for full week
+Unified student database:
+- Settings is now the master student database
+- Parent names, Hebrew names and rate per lesson are saved on each student
+- Monthly Tracking reads from the same students list
+- LessonLog remains a separate sheet for lesson records
+- Autocomplete disabled on inputs
